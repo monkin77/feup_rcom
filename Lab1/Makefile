@@ -23,4 +23,4 @@ $(RECEPTOR_EXEC): $(RECEPTOR_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(RECEPTOR_OBJ) $(LIBS)
 
 clean:
-	rm -rf $(READ_EXEC) $(WRITE_EXEC) *.o *.d
+	rm -rf $(EMISSOR_EXEC) $(RECEPTOR_EXEC) *.o *.d
