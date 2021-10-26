@@ -6,7 +6,7 @@ READ = noncanonical.c
 WRITE = writenoncanonical.c
 
 READ_OBJ = $(READ:.c=.o)
-WRITE_OBJ = $(WRITE:.c=.0)
+WRITE_OBJ = $(WRITE:.c=.o)
 
 READ_EXEC = read
 WRITE_EXEC = write
