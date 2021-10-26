@@ -2,6 +2,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <termios.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 
 #define BAUDRATE B38400
@@ -12,8 +15,8 @@
 volatile int STOP=FALSE;
 
 int main(int argc, char** argv) {
-    int fd, c, res, i = 0;
-    struct termios oldtio,newtio;
+    int fd, c, res_read, i = 0;
+    struct termios oldtio, newtio;
     char buf[255];
 
     if ( (argc < 2) || 
@@ -62,11 +65,12 @@ int main(int argc, char** argv) {
     }
 
     printf("New termios structure set\n");
+    printf("Reading from Serial port...\n");
 
     while (STOP==FALSE) {       /* loop for input */
       char c;
-      res = read(fd, &c, 1);
-      if (res == -1) {
+      res_read = read(fd, &c, 1);
+      if (res_read == -1) {
         printf("Read error\n");
         exit(1);
       }
@@ -76,9 +80,20 @@ int main(int argc, char** argv) {
           STOP = TRUE;
       }
     }
-    printf("Result: %s\n", buf);
+    printf("Received: %s\n", buf);
+    printf("Sending the string...\n");
+
+    int res_write;
+    res_write = write(fd, buf, sizeof(buf));
+    if (res_write == -1) {
+      printf("Error writing\n");
+      exit(1);
+    }
+
+    sleep(1); // Avoid changing config before sending data (transmission error)
 
     tcsetattr(fd,TCSANOW,&oldtio);
     close(fd);
+    printf("Done\n");
     return 0;
 }

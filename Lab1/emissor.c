@@ -2,7 +2,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <termios.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
 #define BAUDRATE B38400
 #define MODEMDEVICE "/dev/ttyS1"
@@ -10,12 +13,14 @@
 #define FALSE 0
 #define TRUE 1
 
+#pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
+
 volatile int STOP=FALSE;
 
 int main(int argc, char** argv) {
     int fd,c, res;
     struct termios oldtio,newtio;
-    char buf[255];
+    char buf_write[255];
     int i, sum = 0, speed = 0;
     
     if ( (argc < 2) || 
@@ -69,10 +74,10 @@ int main(int argc, char** argv) {
     printf("New termios structure set\n");
     
     // Read input string
-    gets(buf);
-    printf("String being sent: %s\n", buf);
+    gets(buf_write);
+    printf("String being sent: %s\n", buf_write);
     
-    res = write(fd,buf, sizeof(buf));   
+    res = write(fd, buf_write, sizeof(buf_write));
     printf("%d bytes written\n", res);
  
 
@@ -81,17 +86,32 @@ int main(int argc, char** argv) {
     o indicado no gui�o 
   */
 
-    sleep(1); // Avoid changing config before sending data (transmission error)
+    printf("Reading from Serial Port...\n");
 
-   
-    if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
-      perror("tcsetattr");
-      exit(-1);
+    char buf_read[255];
+    res = 0, i = 0;
+    while (STOP == FALSE) {
+      char c;
+      res = read(fd, &c, 1);
+      if (res == -1) {
+        printf("Read error\n");
+        exit(1);
+      }
+
+      buf_read[i++] = c;
+      if (c == '\0') {
+          STOP = TRUE;
+      }
     }
 
+    printf("Received: %s\n", buf_read);
 
-
-
+    sleep(1); // Avoid changing config before sending data (transmission error)
+    if (tcsetattr(fd,TCSANOW,&oldtio) == -1) {
+          perror("tcsetattr");
+          exit(-1);
+    }
     close(fd);
+    printf("Done\n");
     return 0;
 }
