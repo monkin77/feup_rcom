@@ -2,25 +2,25 @@ CC=gcc
 CFLAGS = #-Wall
 LIBS =
 
-READ = noncanonical.c
-WRITE = writenoncanonical.c
+EMISSOR = emissor.c
+RECEPTOR = receptor.c
 
-READ_OBJ = $(READ:.c=.o)
-WRITE_OBJ = $(WRITE:.c=.o)
+EMISSOR_OBJ = $(EMISSOR:.c=.o)
+RECEPTOR_OBJ = $(RECEPTOR:.c=.o)
 
-READ_EXEC = read
-WRITE_EXEC = write
+EMISSOR_EXEC = emissor
+RECEPTOR_EXEC = receptor
 
-all: $(READ_EXEC) $(WRITE_EXEC)
+all: $(EMISSOR_EXEC) $(RECEPTOR_EXEC)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(READ_EXEC): $(READ_OBJ)
-	$(CC) $(CFLAGS) -DDELAY=100 -o $@ $(READ_OBJ) $(LIBS)
+$(EMISSOR_EXEC): $(EMISSOR_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(EMISSOR_OBJ) $(LIBS)
 
-$(WRITE_EXEC): $(WRITE_OBJ)
-	$(CC) $(CFLAGS) -o $@ $(WRITE_OBJ) $(LIBS)
+$(RECEPTOR_EXEC): $(RECEPTOR_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(RECEPTOR_OBJ) $(LIBS)
 
 clean:
 	rm -rf $(READ_EXEC) $(WRITE_EXEC) *.o *.d
