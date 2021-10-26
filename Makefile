@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS = -Wall
+CFLAGS = #-Wall
 LIBS =
 
 READ = noncanonical.c
