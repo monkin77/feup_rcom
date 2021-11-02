@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
     printf("New termios structure set\n");
 
     // Send SET
-    uint8_t ans[5] = [FLAG_BYTE, CMD_ABYTE, SET_CONTROL_BYTE, BCC, FLAG_BYTE]; 
+    u_int8_t ans[5] = {FLAG_BYTE, CMD_ABYTE, SET_CONTROL_BYTE, BCC, FLAG_BYTE}; 
     write(fd, ans, sizeof(ans));
     
 

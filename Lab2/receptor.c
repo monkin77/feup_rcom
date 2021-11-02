@@ -5,12 +5,12 @@
 
 volatile int STOP=FALSE;
 
-const BCC = CMD_ABYTE ^ ANSWER_ABYTE;
+const u_int8_t BCC = CMD_ABYTE ^ ANSWER_ABYTE;
 
 int main(int argc, char** argv) {
     int fd, c, res_read, i = 0;
     struct termios oldtio, newtio;
-    char buf[255];
+    u_int8_t buf[255];
 
     if ( (argc < 2) || 
   	     ((strcmp("/dev/ttyS0", argv[1])!=0) && 
@@ -61,23 +61,26 @@ int main(int argc, char** argv) {
     printf("Reading from Serial port...\n");
 
     while (STOP==FALSE) {       /* loop for input */
-      char c;
-      res_read = read(fd, &c, 1);
+      u_int8_t byte;
+      res_read = read(fd, &byte, 1);
       if (res_read == -1) {
         printf("Read error\n");
         exit(1);
       }
-
-      buf[i++] = c;
-      if (c == '\0') {
-          STOP = TRUE;
-      }
+      if (i == 0 && byte != FLAG_BYTE) continue;
+      if (i > 0 && byte == FLAG_BYTE) STOP = TRUE;
+      buf[i++] = byte;
     }
-    printf("Received: %s\n", buf);
-    printf("Sending the string...\n");
+
+    printf("Received:\n");
+    for (int i = 0; i < 5; ++i)
+      printf("0x%x ", buf[i]);
+    printf("\nSending UA...\n");
+
+    u_int8_t answer[5] = {FLAG_BYTE, ANSWER_ABYTE, UA_CONTROL_BYTE, BCC, FLAG_BYTE};
 
     int res_write;
-    res_write = write(fd, buf, sizeof(buf));
+    res_write = write(fd, answer, sizeof(answer));
     if (res_write == -1) {
       printf("Error writing\n");
       exit(1);
