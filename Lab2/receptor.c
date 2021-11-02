@@ -1,6 +1,11 @@
 #include "common.h"
 
+#define CMD_ABYTE 0x01
+#define ANSWER_ABYTE 0x03
+
 volatile int STOP=FALSE;
+
+const BCC = CMD_ABYTE ^ ANSWER_ABYTE;
 
 int main(int argc, char** argv) {
     int fd, c, res_read, i = 0;

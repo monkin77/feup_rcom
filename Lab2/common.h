@@ -12,3 +12,7 @@
 #define FALSE 0
 #define TRUE 1
 #define BIT(n) 1 << n
+
+#define FLAG_BYTE 0b01111110
+#define SET_FIELDBYTE 0x03
+#define UA_FIELDBYTE 0x07

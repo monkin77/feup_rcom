@@ -1,8 +1,12 @@
 #include "common.h"
 
 #define MODEMDEVICE "/dev/ttyS1"
+#define CMD_ABYTE 0x03
+#define ANSWER_ABYTE 0x01
 
 #pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
+
+const BCC = CMD_ABYTE ^ ANSWER_ABYTE;
 
 volatile int STOP=FALSE;
 
