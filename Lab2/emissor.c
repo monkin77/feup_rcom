@@ -11,9 +11,9 @@ const u_int8_t BCC = CMD_ABYTE ^ ANSWER_ABYTE; // Protection field
 volatile int STOP=FALSE;
 
 int main(int argc, char** argv) {
-    int fd,c, res;
+    int fd,c, res, res_read = 0;
     struct termios oldtio,newtio;
-    char buf_write[255];
+    u_int8_t buf[255];
     int i, sum = 0, speed = 0;
     
     if ( (argc < 2) || 
