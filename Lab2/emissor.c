@@ -71,6 +71,23 @@ int main(int argc, char** argv) {
     write(fd, ans, sizeof(ans));
     
 
+    // Receive UA
+    while (STOP==FALSE) {       /* loop for input */
+      u_int8_t byte;
+      res_read = read(fd, &byte, 1);
+      if (res_read == -1) {
+        printf("Read error\n");
+        exit(1);
+      }
+      if (i == 0 && byte != FLAG_BYTE) continue;
+      if (i > 0 && byte == FLAG_BYTE) STOP = TRUE;
+      buf[i++] = byte;
+    }
+    printf("Received:\n");
+    for (int i = 0; i < 5; ++i)
+      printf("0x%x ", buf[i]);
+
+
     sleep(1); // Avoid changing config before sending data (transmission error)
     if (tcsetattr(fd,TCSANOW,&oldtio) == -1) {
           perror("tcsetattr");
