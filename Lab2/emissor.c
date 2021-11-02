@@ -6,7 +6,7 @@
 
 #pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
 
-const BCC = CMD_ABYTE ^ ANSWER_ABYTE;
+const u_int8_t BCC = CMD_ABYTE ^ ANSWER_ABYTE; // Protection field
 
 volatile int STOP=FALSE;
 
@@ -65,39 +65,11 @@ int main(int argc, char** argv) {
     }
 
     printf("New termios structure set\n");
+
+    // Send SET
+    uint8_t ans[5] = [FLAG_BYTE, CMD_ABYTE, SET_CONTROL_BYTE, BCC, FLAG_BYTE]; 
+    write(fd, ans, sizeof(ans));
     
-    // Read input string
-    gets(buf_write);
-    printf("String being sent: %s\n", buf_write);
-    
-    res = write(fd, buf_write, sizeof(buf_write));
-    printf("%d bytes written\n", res);
- 
-
-  /* 
-    O ciclo FOR e as instru��es seguintes devem ser alterados de modo a respeitar 
-    o indicado no gui�o 
-  */
-
-    printf("Reading from Serial Port...\n");
-
-    char buf_read[255];
-    res = 0, i = 0;
-    while (STOP == FALSE) {
-      char c;
-      res = read(fd, &c, 1);
-      if (res == -1) {
-        printf("Read error\n");
-        exit(1);
-      }
-
-      buf_read[i++] = c;
-      if (c == '\0') {
-          STOP = TRUE;
-      }
-    }
-
-    printf("Received: %s\n", buf_read);
 
     sleep(1); // Avoid changing config before sending data (transmission error)
     if (tcsetattr(fd,TCSANOW,&oldtio) == -1) {
