@@ -1,4 +1,5 @@
 #include "common.h"
+#include "signal.h"
 
 #define MODEMDEVICE "/dev/ttyS1"
 #define CMD_ABYTE 0x03
@@ -9,6 +10,14 @@
 const u_int8_t BCC = CMD_ABYTE ^ ANSWER_ABYTE; // Protection field
 
 volatile int STOP=FALSE;
+
+int messageFlag = 1, conta = 0;
+
+void atende() {
+   printf("alarme # %d\n", conta + 1);
+   messageFlag = 1;
+   conta++;
+}
 
 int main(int argc, char** argv) {
     int fd,c, res, res_read = 0;
@@ -22,6 +31,8 @@ int main(int argc, char** argv) {
       printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
       exit(1);
     }
+
+    (void)signal(SIGALRM, atende);
 
   /*
     Open serial port device for reading and writing and not as controlling tty
@@ -45,8 +56,8 @@ int main(int argc, char** argv) {
     /* set input mode (non-canonical, no echo,...) */
     newtio.c_lflag = 0;
 
-    newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
-    newtio.c_cc[VMIN]     = 1;   /* blocking read until 5 chars received */
+    newtio.c_cc[VTIME]    = 1;   /* inter-character timer unused */
+    newtio.c_cc[VMIN]     = 0;   /* blocking read until 1 char received */
 
 
 
@@ -68,25 +79,43 @@ int main(int argc, char** argv) {
 
     // Send SET
     u_int8_t ans[5] = {FLAG_BYTE, CMD_ABYTE, SET_CONTROL_BYTE, BCC, FLAG_BYTE}; 
-    write(fd, ans, sizeof(ans));
-    
 
     // Receive UA
     while (STOP==FALSE) {       /* loop for input */
+
+      if (conta == 3) {
+        printf("Communication failed\n");
+        break;
+      }
+
+      if (messageFlag) {
+        write(fd, ans, sizeof(ans));
+        messageFlag = 0;
+        i = 0;
+        alarm(3);
+      }
+
       u_int8_t byte;
       res_read = read(fd, &byte, 1);
       if (res_read == -1) {
-        printf("Read error\n");
-        exit(1);
+        continue;
       }
       if (i == 0 && byte != FLAG_BYTE) continue;
-      if (i > 0 && byte == FLAG_BYTE) STOP = TRUE;
+      if (i > 0 && byte == FLAG_BYTE) {
+        if (i != 4 || buf[3] != ans[3]) {
+          i = 0;
+          continue;
+        } // TODO: TEST IF IT'S STILL RECEIVING GARBAGE
+        STOP = TRUE;
+      }
       buf[i++] = byte;
     }
-    printf("Received:\n");
-    for (int i = 0; i < 5; ++i)
-      printf("0x%x ", buf[i]);
 
+    if (STOP) {
+      printf("Received:\n");
+      for (int x = 0; x < i; ++x)
+        printf("0x%x ", buf[x]);
+    }
 
     sleep(1); // Avoid changing config before sending data (transmission error)
     if (tcsetattr(fd,TCSANOW,&oldtio) == -1) {
