@@ -2,15 +2,12 @@
 #include "signal.h"
 #include "emissor.h"
 
-#define MODEMDEVICE "/dev/ttyS1"
-#define CMD_ABYTE 0x03
-#define ANSWER_ABYTE 0x01
-
 #pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
 
-const u_int8_t BCC = CMD_ABYTE ^ SET_CONTROL_BYTE; // Protection field
+const u_int8_t BCC_SET = EMISSOR_CMD_ABYTE ^ SET_CONTROL_BYTE; // Protection fields
+const u_int8_t BCC_UA = RECEPTOR_ANSWER_ABYTE ^ UA_CONTROL_BYTE;
 
-volatile int STOP=FALSE;
+volatile int STOP_EXEC=FALSE;
 
 int messageFlag = 1, conta = 0;
 
@@ -24,10 +21,10 @@ int sendSet(int fd, int alarmInterval) {
   int res_read = 0, i = 0;
   u_int8_t buf[255];
 
-  u_int8_t ans[5] = {FLAG_BYTE, CMD_ABYTE, SET_CONTROL_BYTE, BCC, FLAG_BYTE}; 
+  u_int8_t ans[5] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, SET_CONTROL_BYTE, BCC_SET, FLAG_BYTE}; 
 
   // Send SET and receive answer
-  while (STOP==FALSE) {
+  while (STOP_EXEC==FALSE) {
 
     if (conta == 3) {
       printf("Communication failed\n");
@@ -49,22 +46,22 @@ int sendSet(int fd, int alarmInterval) {
     }
     if (i == 0 && byte != FLAG_BYTE) continue;
     if (i > 0 && byte == FLAG_BYTE) {
-      if (i != 4 || buf[3] != BCC) {
+      if (i != 4 || buf[3] != BCC_UA) {
         i = 0;
         continue;
       }
-      STOP = TRUE;
+      STOP_EXEC = TRUE;
     }
     buf[i++] = byte;
   }
 
-  if (STOP) {
+  if (STOP_EXEC) {
     printf("Received:\n");
     for (int x = 0; x < i; ++x)
       printf("0x%x ", buf[x]);
   }
 
-  return 1;
+  return 0;
 }
 
 int main(int argc, char** argv) {
@@ -121,7 +118,7 @@ int main(int argc, char** argv) {
 
     printf("New termios structure set\n");
 
-    sendSet(fd, 3);
+    if (sendSet(fd, 3)) exit(1);
     
     sleep(1); // Avoid changing config before sending data (transmission error)
     if (tcsetattr(fd,TCSANOW,&oldtio) == -1) {

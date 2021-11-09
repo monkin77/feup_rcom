@@ -1,11 +1,61 @@
-#include "common.h"
+#include "receptor.h"
 
-#define CMD_ABYTE 0x01
-#define ANSWER_ABYTE 0x03
+int receiveSet(int fd) {
+  State state = START;
 
-volatile int STOP=FALSE;
+  while (state != STOP) {
+    u_int8_t byte, addr_byte, bcc;
+    int res_read;
+    res_read = read(fd, &byte, 1);
+    if (res_read == -1) {
+      printf("Read error\n");
+      return 1;
+    }
 
-const u_int8_t BCC = CMD_ABYTE ^ ANSWER_ABYTE;
+    if (state == START) {
+      if (byte == FLAG_BYTE) state = FLAG_RCV;
+    }
+    else if (state == FLAG_RCV) {
+      if (byte == FLAG_BYTE) continue;
+      else if (byte == EMISSOR_CMD_ABYTE) {
+        addr_byte = byte;
+        state = ADDR_RCV;
+      }
+      else state = START;
+    }
+    else if (state == ADDR_RCV) {
+      if (byte == FLAG_BYTE) state = FLAG_RCV;
+      else if (byte == SET_CONTROL_BYTE) {
+        bcc = addr_byte ^ byte;
+        state = CTRL_RCV;
+      }
+      else state = START;
+    }
+    else if (state == CTRL_RCV) {
+      if (byte == FLAG_BYTE) state = FLAG_RCV;
+      else if (bcc == byte) state = BCC_OK;
+      else state = START;
+    }
+    else if (state == BCC_OK) {
+      if (byte == FLAG_BYTE) state = STOP;
+      else state = START;
+    }
+  }
+  return 0;
+}
+
+int sendUA(int fd) {
+  const u_int8_t BCC = RECEPTOR_ANSWER_ABYTE ^ UA_CONTROL_BYTE;
+  u_int8_t message[5] = {FLAG_BYTE, RECEPTOR_ANSWER_ABYTE, UA_CONTROL_BYTE, BCC, FLAG_BYTE};
+  int res;
+  res = write(fd, message, sizeof(message));
+  if (res == -1) {
+    printf("Error writing\n");
+    return 1;
+  }
+  return 0;
+}
+
 
 int main(int argc, char** argv) {
     int fd, c, res_read, i = 0;
@@ -58,33 +108,14 @@ int main(int argc, char** argv) {
     }
 
     printf("New termios structure set\n");
-    printf("Reading from Serial port...\n");
+    printf("Reading the SET message...\n");
 
-    while (STOP==FALSE) {       /* loop for input */
-      u_int8_t byte;
-      res_read = read(fd, &byte, 1);
-      if (res_read == -1) {
-        printf("Read error\n");
-        exit(1);
-      }
-      if (i == 0 && byte != FLAG_BYTE) continue;
-      if (i > 0 && byte == FLAG_BYTE) STOP = TRUE;
-      buf[i++] = byte;
-    }
+    if (receiveSet(fd)) exit(1);
 
-    printf("Received:\n");
-    for (int i = 0; i < 5; ++i)
-      printf("0x%x ", buf[i]);
-    printf("\nSending UA...\n");
+    printf("Received Set\n");
+    printf("Sending UA...\n");
 
-    u_int8_t answer[5] = {FLAG_BYTE, ANSWER_ABYTE, UA_CONTROL_BYTE, BCC, FLAG_BYTE};
-
-    int res_write;
-    res_write = write(fd, answer, sizeof(answer));
-    if (res_write == -1) {
-      printf("Error writing\n");
-      exit(1);
-    }
+    if (sendUA(fd)) exit(1);
 
     sleep(1); // Avoid changing config before sending data (transmission error)
 
