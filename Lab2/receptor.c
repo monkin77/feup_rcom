@@ -5,9 +5,9 @@ int receiveSet(int fd) {
 
   while (state != STOP) {
     u_int8_t byte, addr_byte, bcc;
-    int res_read;
-    res_read = read(fd, &byte, 1);
-    if (res_read == -1) {
+    int res;
+    res = read(fd, &byte, 1);
+    if (res == -1) {
       printf("Read error\n");
       return 1;
     }

@@ -18,14 +18,10 @@ void atende() {
 }
 
 int sendSet(int fd, int alarmInterval) {
-  int res_read = 0, i = 0;
-  u_int8_t buf[255];
-
+  State state = START;
   u_int8_t ans[5] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, SET_CONTROL_BYTE, BCC_SET, FLAG_BYTE}; 
 
-  // Send SET and receive answer
-  while (STOP_EXEC==FALSE) {
-
+  while (state != STOP) {
     if (conta == 3) {
       printf("Communication failed\n");
       return 1;
@@ -34,33 +30,49 @@ int sendSet(int fd, int alarmInterval) {
     if (messageFlag) {
       write(fd, ans, sizeof(ans));
       messageFlag = 0;
-      i = 0;
+      state = START;
       alarm(alarmInterval);
     }
 
-    u_int8_t byte;
-    res_read = read(fd, &byte, 1);
-    // printf("Received %x\n", byte);
-    if (res_read == -1) {
-      continue;
+    u_int8_t byte, addr_byte, bcc;
+    int res;
+    res = read(fd, &byte, 1);
+    if (res == -1) {
+      printf("Read error\n");
+      return 1;
     }
-    if (i == 0 && byte != FLAG_BYTE) continue;
-    if (i > 0 && byte == FLAG_BYTE) {
-      if (i != 4 || buf[3] != BCC_UA) {
-        i = 0;
-        continue;
+
+    if (state == START) {
+      if (byte == FLAG_BYTE) state = FLAG_RCV;
+    }
+    else if (state == FLAG_RCV) {
+      if (byte == FLAG_BYTE) continue;
+      else if (byte == RECEPTOR_ANSWER_ABYTE) {
+        addr_byte = byte;
+        state = ADDR_RCV;
       }
-      STOP_EXEC = TRUE;
+      else state = START;
     }
-    buf[i++] = byte;
+    else if (state == ADDR_RCV) {
+      if (byte == FLAG_BYTE) state = FLAG_RCV;
+      else if (byte == UA_CONTROL_BYTE) {
+        bcc = addr_byte ^ byte;
+        state = CTRL_RCV;
+      }
+      else state = START;
+    }
+    else if (state == CTRL_RCV) {
+      if (byte == FLAG_BYTE) state = FLAG_RCV;
+      else if (bcc == byte) state = BCC_OK;
+      else state = START;
+    }
+    else if (state == BCC_OK) {
+      if (byte == FLAG_BYTE) state = STOP;
+      else state = START;
+    }
   }
 
-  if (STOP_EXEC) {
-    printf("Received:\n");
-    for (int x = 0; x < i; ++x)
-      printf("0x%x ", buf[x]);
-  }
-
+  printf("Read UA, success!\n");
   return 0;
 }
 
@@ -117,6 +129,7 @@ int main(int argc, char** argv) {
     }
 
     printf("New termios structure set\n");
+    printf("Sending SET...\n");
 
     if (sendSet(fd, 3)) exit(1);
     
