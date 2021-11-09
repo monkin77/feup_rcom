@@ -8,7 +8,7 @@
 
 #pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
 
-const u_int8_t BCC = CMD_ABYTE ^ ANSWER_ABYTE; // Protection field
+const u_int8_t BCC = CMD_ABYTE ^ SET_CONTROL_BYTE; // Protection field
 
 volatile int STOP=FALSE;
 
