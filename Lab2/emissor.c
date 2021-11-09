@@ -56,8 +56,8 @@ int main(int argc, char** argv) {
     /* set input mode (non-canonical, no echo,...) */
     newtio.c_lflag = 0;
 
-    newtio.c_cc[VTIME]    = 1;   /* inter-character timer unused */
-    newtio.c_cc[VMIN]     = 0;   /* blocking read until 1 char received */
+    newtio.c_cc[VTIME]    = 1;   /* unblock after 0.1secs or 1 char received */
+    newtio.c_cc[VMIN]     = 0;
 
 
 
@@ -77,11 +77,11 @@ int main(int argc, char** argv) {
 
     printf("New termios structure set\n");
 
-    // Send SET
+
     u_int8_t ans[5] = {FLAG_BYTE, CMD_ABYTE, SET_CONTROL_BYTE, BCC, FLAG_BYTE}; 
 
-    // Receive UA
-    while (STOP==FALSE) {       /* loop for input */
+    // Send SET and receive answer
+    while (STOP==FALSE) {
 
       if (conta == 3) {
         printf("Communication failed\n");
@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
         if (i != 4 || buf[3] != ans[3]) {
           i = 0;
           continue;
-        } // TODO: TEST IF IT'S STILL RECEIVING GARBAGE
+        }
         STOP = TRUE;
       }
       buf[i++] = byte;
