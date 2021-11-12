@@ -2,3 +2,4 @@
 *.d
 write
 read
+*.vscode
