@@ -49,44 +49,15 @@ int sendSet(int fd) {
   return 0;
 }
 
-/**
- * @brief Create control byte for information frames
- * 
- * @param s Either 0 or 1
- * @return u_int8_t control byte
- */
-u_int8_t generateInfoControlByte(int s) {
-  if (s == 0) return 0;
-
-  return BIT(6);
-}
-
-/**
- * @brief Calculate BCC2 according to data by doing XOR iteratively
- * 
- * @param data 
- * @param dataSize 
- * @return u_int8_t BCC2
- */
-u_int8_t generateBCC2(u_int8_t* data, int dataSize) {
-  u_int8_t result = data[0];
-
-  for (int i = 1; i < dataSize; i++) {
-    result ^= data[i];
-  }
-
-  return result;
-}
-
-int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
+int sendDataFrame(int fd, u_int8_t* data) {
   resetAlarmVariables();
 
   int res_read = 0, i = 0;
   u_int8_t mem[3];
 
-  u_int8_t controlByte = generateInfoControlByte(s);
+  u_int8_t controlByte = INFO_CONTROL_BYTE(s);
   u_int8_t BCC1 = EMISSOR_CMD_ABYTE ^ controlByte;
-  u_int8_t BCC2 = generateBCC2(data, dataSize);
+  u_int8_t BCC2 = generateBCC2(data);
 
   u_int8_t frameHead[4] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, controlByte, BCC1};
   u_int8_t frameTail[2] = {BCC2, FLAG_BYTE};
@@ -99,11 +70,11 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
     }
 
     if (messageFlag) {
-      for (int i =0; i < dataSize; i++) {
+      /* for (int i =0; i < FRAME_DATA_SIZE; i++) {
         printf("Sending data byte: %x\n", data[i]);
-      }
+      } */
       write(fd, frameHead, 4);
-      write(fd, data, dataSize);
+      write(fd, data, FRAME_DATA_SIZE);
       write(fd, frameTail, 2);
 
       messageFlag = 0;
@@ -116,6 +87,7 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
   }
 
   s = 1 - s;
+  return 0;
 }
 
 int main(int argc, char** argv) {
@@ -175,8 +147,9 @@ int main(int argc, char** argv) {
 
     if (sendSet(fd)) exit(1);
 
-    u_int8_t data[9] = {0x51, 0x75, 0x65, 0x20, 0x72, 0x65, 0x67, 0x6f, 0x21};
-    sendDataFrame(fd, data, 9);
+    u_int8_t data[FRAME_DATA_SIZE] = {0x51, 0x75, 0x65, 0x20, 0x72, 0x65, 0x67, 0x6f, 0x21};
+    if (sendDataFrame(fd, data)) exit(1);
+    printf("Received RR!\n");
     
     sleep(1); // Avoid changing config before sending data (transmission error)
     if (tcsetattr(fd,TCSANOW,&oldtio) == -1) {

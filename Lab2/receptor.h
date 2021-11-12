@@ -13,4 +13,13 @@ int receiveSet(int fd);
  */
 int sendUA(int fd);
 
+/**
+ * @brief Receives a data frame
+ * 
+ * @param fd 
+ * @param data 
+ * @return int 
+ */
+int receiveDataFrame(int fd, u_int8_t* data);
+
 #endif

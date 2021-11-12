@@ -1,6 +1,8 @@
 #include "receptor.h"
 #include "statemachines.h"
 
+int r = 1;
+
 int receiveSet(int fd) {
   State state = START;
   u_int8_t mem[3];
@@ -21,6 +23,71 @@ int sendUA(int fd) {
     printf("Error writing\n");
     return 1;
   }
+  return 0;
+}
+
+int receiveDataFrame(int fd, u_int8_t* data) {
+  State state = START;
+  u_int8_t receivedAddress, receivedControl, calculatedBCC, ctrl = INFO_CONTROL_BYTE(1-r), calculatedBCC2;
+  int currentDataIdx;
+
+  while (state != STOP) {
+    int res; u_int8_t byte;
+    res = read(fd, &byte, 1);
+    if (res == -1) {
+      printf("Read error\n");
+      return 1;
+    }
+
+    if (state == START) {
+      if (byte == FLAG_BYTE) state = FLAG_RCV;
+    }
+    else if (state == FLAG_RCV) {
+      if (byte == FLAG_BYTE) continue;
+      else if (byte == EMISSOR_CMD_ABYTE) {
+        receivedAddress = byte;
+        state = ADDR_RCV;
+      }
+      else state = START;
+    }
+    else if (state == ADDR_RCV) {
+      if (byte == FLAG_BYTE) state = FLAG_RCV;
+      else if (byte == ctrl) {
+        receivedControl = byte;
+        calculatedBCC = receivedAddress ^ receivedControl;
+        state = CTRL_RCV;
+      }
+      else state = START;
+    }
+    else if (state == CTRL_RCV) {
+      if (byte == FLAG_BYTE) state = FLAG_RCV;
+      else if (calculatedBCC == byte) {
+        state = BCC_OK;
+        currentDataIdx = 0;
+      }
+      else state = START;
+    }
+    else if (state == BCC_OK) {
+      if (byte == FLAG_BYTE) state = FLAG_RCV;
+      else {
+        data[currentDataIdx++] = byte;
+        if (currentDataIdx >= FRAME_DATA_SIZE) state = DATA_RCV;
+      }
+    }
+    else if (state == DATA_RCV) {
+      if (byte == FLAG_BYTE) state = FLAG_RCV;
+      else {
+        calculatedBCC2 = generateBCC2(data);
+        if (calculatedBCC2 == byte) state = BCC2_OK;
+        else state = START;
+      }
+    }
+    else if (state == BCC2_OK) {
+      if (byte == FLAG_BYTE) state = STOP;
+      else state = START;
+    }
+  }
+
   return 0;
 }
 
@@ -79,11 +146,19 @@ int main(int argc, char** argv) {
     printf("Reading the SET message...\n");
 
     if (receiveSet(fd)) exit(1);
-
+    
     printf("Received Set\n");
     printf("Sending UA...\n");
 
     if (sendUA(fd)) exit(1);
+
+    u_int8_t dataBuffer[FRAME_DATA_SIZE];
+    if (receiveDataFrame(fd, dataBuffer)) exit(1);
+    printf("Received data: %s\n", dataBuffer);
+    
+    printf("Sending RR...\n");
+
+    if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(r))) exit(1);
 
     sleep(1); // Avoid changing config before sending data (transmission error)
 
