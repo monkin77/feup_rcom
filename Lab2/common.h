@@ -20,6 +20,8 @@
 
 #define SET_CONTROL_BYTE 0x03
 #define UA_CONTROL_BYTE 0x07
+#define RR_CONTROL_BYTE(r) BIT(7*r) | 0x05  // r -> 0 or 1  
+#define REJ_CONTROL_BYTE(r) BIT(7*r) | 0x01  // r -> 0 or 1  
 
 #define EMISSOR_CMD_ABYTE 0x03
 #define EMISSOR_ANSWER_ABYTE 0x01
