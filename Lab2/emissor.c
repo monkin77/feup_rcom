@@ -1,7 +1,6 @@
 #include "common.h"
 #include "signal.h"
 #include "emissor.h"
-#include "statemachines.h"
 
 #pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
 
