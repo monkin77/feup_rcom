@@ -1,3 +1,6 @@
+#ifndef EMISSOR_H
+#define EMISSOR_H
+
 /**
  * @brief Attempts to setup connection, by sending a SET and verifying the response (UA)
  * 
@@ -8,3 +11,5 @@
 int sendSet(int fd, int alarmInterval);
 
 void atende();
+
+#endif

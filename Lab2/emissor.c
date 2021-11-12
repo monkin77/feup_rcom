@@ -19,7 +19,7 @@ void atende() {
 
 int sendSet(int fd, int alarmInterval) {
   State state = START;
-  u_int8_t ans[5] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, SET_CONTROL_BYTE, BCC_SET, FLAG_BYTE}; 
+  u_int8_t mem[3], ans[5] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, SET_CONTROL_BYTE, BCC_SET, FLAG_BYTE}; 
 
   while (state != STOP) {
     if (conta == 3) {
@@ -34,42 +34,8 @@ int sendSet(int fd, int alarmInterval) {
       alarm(alarmInterval);
     }
 
-    u_int8_t byte, addr_byte, bcc;
-    int res;
-    res = read(fd, &byte, 1);
-    if (res == -1) {
-      printf("Read error\n");
+    if (receive_supervision_machine(&state, fd, RECEPTOR_ANSWER_ABYTE, UA_CONTROL_BYTE, mem))
       return 1;
-    }
-
-    if (state == START) {
-      if (byte == FLAG_BYTE) state = FLAG_RCV;
-    }
-    else if (state == FLAG_RCV) {
-      if (byte == FLAG_BYTE) continue;
-      else if (byte == RECEPTOR_ANSWER_ABYTE) {
-        addr_byte = byte;
-        state = ADDR_RCV;
-      }
-      else state = START;
-    }
-    else if (state == ADDR_RCV) {
-      if (byte == FLAG_BYTE) state = FLAG_RCV;
-      else if (byte == UA_CONTROL_BYTE) {
-        bcc = addr_byte ^ byte;
-        state = CTRL_RCV;
-      }
-      else state = START;
-    }
-    else if (state == CTRL_RCV) {
-      if (byte == FLAG_BYTE) state = FLAG_RCV;
-      else if (bcc == byte) state = BCC_OK;
-      else state = START;
-    }
-    else if (state == BCC_OK) {
-      if (byte == FLAG_BYTE) state = STOP;
-      else state = START;
-    }
   }
 
   printf("Read UA, success!\n");

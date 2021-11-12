@@ -1,3 +1,6 @@
+#ifndef RECEPTOR_H
+#define RECEPTOR_H
+
 #include "common.h"
 
 /**
@@ -9,3 +12,5 @@ int receiveSet(int fd);
  * Sends a UA answer.
  */
 int sendUA(int fd);
+
+#endif

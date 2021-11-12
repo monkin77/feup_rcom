@@ -1,3 +1,6 @@
+#ifndef COMMON_H
+#define COMMON_H
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -31,3 +34,5 @@ typedef enum State {
   BCC_OK,
   STOP
 } State;
+
+#endif

@@ -2,8 +2,8 @@ CC=gcc
 CFLAGS = #-Wall
 LIBS =
 
-EMISSOR = emissor.c
-RECEPTOR = receptor.c
+EMISSOR = emissor.c statemachines.c
+RECEPTOR = receptor.c statemachines.c
 
 EMISSOR_OBJ = $(EMISSOR:.c=.o)
 RECEPTOR_OBJ = $(RECEPTOR:.c=.o)
