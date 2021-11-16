@@ -38,52 +38,62 @@ int receiveDataFrame(int fd, u_int8_t* data) {
       return 1;
     }
 
-    if (state == START) {
-      if (byte == FLAG_BYTE) state = FLAG_RCV;
-    }
-    else if (state == FLAG_RCV) {
-      if (byte == FLAG_BYTE) continue;
-      else if (byte == EMISSOR_CMD_ABYTE) {
-        receivedAddress = byte;
-        state = ADDR_RCV;
-      }
-      else state = START;
-    }
-    else if (state == ADDR_RCV) {
-      if (byte == FLAG_BYTE) state = FLAG_RCV;
-      else if (byte == ctrl) {
-        receivedControl = byte;
-        calculatedBCC = receivedAddress ^ receivedControl;
-        state = CTRL_RCV;
-      }
-      else state = START;
-    }
-    else if (state == CTRL_RCV) {
-      if (byte == FLAG_BYTE) state = FLAG_RCV;
-      else if (calculatedBCC == byte) {
-        state = BCC_OK;
-        currentDataIdx = 0;
-      }
-      else state = START;
-    }
-    else if (state == BCC_OK) {
-      if (byte == FLAG_BYTE) state = FLAG_RCV;
-      else {
-        data[currentDataIdx++] = byte;
-        if (currentDataIdx >= FRAME_DATA_SIZE) state = DATA_RCV;
-      }
-    }
-    else if (state == DATA_RCV) {
-      if (byte == FLAG_BYTE) state = FLAG_RCV;
-      else {
-        calculatedBCC2 = generateBCC2(data);
-        if (calculatedBCC2 == byte) state = BCC2_OK;
+
+    switch (state) {
+      case START:
+        if (byte == FLAG_BYTE) state = FLAG_RCV;
+        break;
+
+      case FLAG_RCV:
+        if (byte == FLAG_BYTE) continue;
+        else if (byte == EMISSOR_CMD_ABYTE) {
+          receivedAddress = byte;
+          state = ADDR_RCV;
+        }
         else state = START;
-      }
-    }
-    else if (state == BCC2_OK) {
-      if (byte == FLAG_BYTE) state = STOP;
-      else state = START;
+        break;
+
+      case ADDR_RCV:
+        if (byte == FLAG_BYTE) state = FLAG_RCV;
+        else if (byte == ctrl) {
+          receivedControl = byte;
+          calculatedBCC = receivedAddress ^ receivedControl;
+          state = CTRL_RCV;
+        }
+        else state = START;
+        break;
+
+      case CTRL_RCV:
+        if (byte == FLAG_BYTE) state = FLAG_RCV;
+        else if (calculatedBCC == byte) {
+          state = BCC_OK;
+          currentDataIdx = 0;
+        }
+        else state = START;
+        break;
+
+      case BCC_OK:
+        if (byte == FLAG_BYTE) state = FLAG_RCV;
+        else {
+          data[currentDataIdx++] = byte;
+          if (currentDataIdx >= FRAME_DATA_SIZE) state = DATA_RCV;
+        }
+        break;
+
+      case DATA_RCV:
+        if (byte == FLAG_BYTE) state = FLAG_RCV;
+        else {
+          calculatedBCC2 = generateBCC2(data);
+          if (calculatedBCC2 == byte) state = BCC2_OK;
+          else state = START;
+        }
+        break;
+
+      case BCC2_OK:
+        if (byte == FLAG_BYTE) state = STOP;
+        else state = START;
+        break;
+
     }
   }
 
