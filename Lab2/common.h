@@ -17,6 +17,9 @@
 #define BIT(n) 1 << n
 
 #define FLAG_BYTE 0x7E
+#define ESC_BYTE 0x7d
+#define STUFFED_FLAG_BYTE 0x5e
+#define STUFFED_ESC_BYTE 0x5d
 
 #define SET_CONTROL_BYTE 0x03
 #define UA_CONTROL_BYTE 0x07
@@ -30,6 +33,7 @@
 #define RECEPTOR_CMD_ABYTE 0x01
 
 #define FRAME_DATA_SIZE 9
+#define MAX_STUFFED_DATA_SIZE (FRAME_DATA_SIZE * 2 + 2)
 
 typedef enum State {
   START,
@@ -37,8 +41,6 @@ typedef enum State {
   ADDR_RCV,
   CTRL_RCV,
   BCC_OK,
-  DATA_RCV,
-  BCC2_OK,
   STOP
 } State;
 
@@ -48,7 +50,7 @@ typedef enum State {
  * @param data 
  * @return u_int8_t BCC2
  */
-u_int8_t generateBCC2(u_int8_t* data);
+u_int8_t generateBCC2(u_int8_t* data, int dataSize);
 
 int sendSupervisionFrame(int fd, u_int8_t addr, u_int8_t ctrl);
 

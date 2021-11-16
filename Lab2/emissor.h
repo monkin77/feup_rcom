@@ -13,7 +13,7 @@ int sendSet(int fd);
 
 void atende();
 
-int sendDataFrame(int fd, u_int8_t* data);
+int sendDataFrame(int fd, u_int8_t* data, int dataSize);
 
 /**
  * @brief Resets alarm variables

@@ -13,22 +13,32 @@ int receiveSet(int fd) {
   return 0;
 }
 
-int sendUA(int fd) {
-  const u_int8_t BCC = RECEPTOR_ANSWER_ABYTE ^ UA_CONTROL_BYTE;
-  u_int8_t message[5] = {FLAG_BYTE, RECEPTOR_ANSWER_ABYTE, UA_CONTROL_BYTE, BCC, FLAG_BYTE};
-  int res;
-  res = write(fd, message, sizeof(message));
-  if (res == -1) {
-    printf("Error writing\n");
-    return 1;
+int destuffData(u_int8_t* stuffed_data, int size, u_int8_t* buffer, u_int8_t* bcc2) {
+  u_int8_t destuffed_buffer[FRAME_DATA_SIZE + 1];
+  int bufferIdx = 0;
+
+  for (int i = 0; i < size; i++) {
+    u_int8_t currByte = stuffed_data[i];
+    if (currByte == ESC_BYTE) {
+      u_int8_t nextByte = stuffed_data[++i];
+      if (nextByte == STUFFED_FLAG_BYTE) destuffed_buffer[bufferIdx++] = FLAG_BYTE;
+      else if (nextByte == STUFFED_ESC_BYTE) destuffed_buffer[bufferIdx++] = ESC_BYTE;
+      else printf("There should be no isolated ESC byte \n");
+    } else destuffed_buffer[bufferIdx++] = currByte;
   }
-  return 0;
+  bufferIdx--;
+
+  *bcc2 = destuffed_buffer[bufferIdx];
+
+  memcpy(buffer, destuffed_buffer, bufferIdx);
+  return bufferIdx;
 }
 
 int receiveDataFrame(int fd, u_int8_t* data) {
   State state = START;
-  u_int8_t receivedAddress, receivedControl, calculatedBCC, ctrl = INFO_CONTROL_BYTE(1-r), calculatedBCC2;
+  u_int8_t receivedAddress, receivedControl, calculatedBCC, ctrl = INFO_CONTROL_BYTE(1-r), calculatedBCC2, bcc2;
   int currentDataIdx;
+  u_int8_t stuffed_data[MAX_STUFFED_DATA_SIZE];
 
   while (state != STOP) {
     int res; u_int8_t byte;
@@ -73,27 +83,19 @@ int receiveDataFrame(int fd, u_int8_t* data) {
         break;
 
       case BCC_OK:
-        if (byte == FLAG_BYTE) state = FLAG_RCV;
-        else {
-          data[currentDataIdx++] = byte;
-          if (currentDataIdx >= FRAME_DATA_SIZE) state = DATA_RCV;
+        if (currentDataIdx >= MAX_STUFFED_DATA_SIZE) state = START;
+        else if (byte == FLAG_BYTE) {
+          int dataSize = destuffData(stuffed_data, currentDataIdx, data, &bcc2);
+          calculatedBCC2 = generateBCC2(data, dataSize);
+          if (calculatedBCC2 != bcc2) {
+            sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, REJ_CONTROL_BYTE(1-r));
+            state = START;
+          } else {
+            state = STOP;
+          }
         }
+        else stuffed_data[currentDataIdx++] = byte;
         break;
-
-      case DATA_RCV:
-        if (byte == FLAG_BYTE) state = FLAG_RCV;
-        else {
-          calculatedBCC2 = generateBCC2(data);
-          if (calculatedBCC2 == byte) state = BCC2_OK;
-          else state = START;
-        }
-        break;
-
-      case BCC2_OK:
-        if (byte == FLAG_BYTE) state = STOP;
-        else state = START;
-        break;
-
     }
   }
 
@@ -159,7 +161,7 @@ int main(int argc, char** argv) {
     printf("Received Set\n");
     printf("Sending UA...\n");
 
-    if (sendUA(fd)) exit(1);
+    if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, UA_CONTROL_BYTE)) exit(1);
 
     u_int8_t dataBuffer[FRAME_DATA_SIZE];
     if (receiveDataFrame(fd, dataBuffer)) exit(1);

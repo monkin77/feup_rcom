@@ -1,9 +1,9 @@
 #include "common.h"
 
-u_int8_t generateBCC2(u_int8_t* data) {
+u_int8_t generateBCC2(u_int8_t* data, int dataSize) {
   u_int8_t result = data[0];
 
-  for (int i = 1; i < FRAME_DATA_SIZE; i++) {
+  for (int i = 1; i < dataSize; i++) {
     result ^= data[i];
   }
 

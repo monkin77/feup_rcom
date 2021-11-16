@@ -48,7 +48,7 @@ int sendSet(int fd) {
   return 0;
 }
 
-int sendDataFrame(int fd, u_int8_t* data) {
+int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
   resetAlarmVariables();
 
   int res_read = 0, i = 0;
@@ -56,7 +56,7 @@ int sendDataFrame(int fd, u_int8_t* data) {
 
   u_int8_t controlByte = INFO_CONTROL_BYTE(s);
   u_int8_t BCC1 = EMISSOR_CMD_ABYTE ^ controlByte;
-  u_int8_t BCC2 = generateBCC2(data);
+  u_int8_t BCC2 = generateBCC2(data, dataSize);
 
   u_int8_t frameHead[4] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, controlByte, BCC1};
   u_int8_t frameTail[2] = {BCC2, FLAG_BYTE};
@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
     if (sendSet(fd)) exit(1);
 
     u_int8_t data[FRAME_DATA_SIZE] = {0x51, 0x75, 0x65, 0x20, 0x72, 0x65, 0x67, 0x6f, 0x21};
-    if (sendDataFrame(fd, data)) exit(1);
+    if (sendDataFrame(fd, data, FRAME_DATA_SIZE)) exit(1);  // CHANGE THIS TO DYNAMIC SIZE
     printf("Received RR!\n");
     
     sleep(1); // Avoid changing config before sending data (transmission error)

@@ -9,9 +9,15 @@
 int receiveSet(int fd);
 
 /**
- * Sends a UA answer.
+ * @brief Destuf data into buffer
+ * 
+ * @param stuffed_data 
+ * @param size 
+ * @param buffer 
+ * @param bcc2 
+ * @return int size of the data
  */
-int sendUA(int fd);
+int destuffData(u_int8_t* stuffed_data, int size, u_int8_t* buffer, u_int8_t* bcc2);
 
 /**
  * @brief Receives a data frame
