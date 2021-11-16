@@ -13,6 +13,16 @@ int sendSet(int fd);
 
 void atende();
 
+/**
+ * @brief Stuffs data into stuffedData
+ * 
+ * @param buffer 
+ * @param size 
+ * @param stuffedData 
+ * @return int stuffedData size
+ */
+int stuffData(u_int8_t* buffer, int size, u_int8_t bcc2, u_int8_t* stuffedData);
+
 int sendDataFrame(int fd, u_int8_t* data, int dataSize);
 
 /**

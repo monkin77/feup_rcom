@@ -21,6 +21,36 @@ void atende() {
    conta++;
 }
 
+int stuffData(u_int8_t* buffer, int size, u_int8_t bcc2, u_int8_t* stuffedData) {
+  int stuffedDataIdx = 0;
+
+  for (int i = 0; i < size; i++) {
+    u_int8_t currByte = buffer[i];
+    if (currByte == ESC_BYTE) {
+      stuffedData[stuffedDataIdx++] = ESC_BYTE;
+      stuffedData[stuffedDataIdx++] = STUFFED_ESC_BYTE;
+    } 
+    else if (currByte == FLAG_BYTE) {
+      stuffedData[stuffedDataIdx++] = ESC_BYTE;
+      stuffedData[stuffedDataIdx++] = STUFFED_FLAG_BYTE;
+    } else {
+      stuffedData[stuffedDataIdx++] = currByte;
+    }
+  }
+
+  if (bcc2 == ESC_BYTE) {
+    stuffedData[stuffedDataIdx++] = ESC_BYTE;
+    stuffedData[stuffedDataIdx++] = STUFFED_ESC_BYTE;
+  } else if (bcc2 == FLAG_BYTE) {
+    stuffedData[stuffedDataIdx++] = ESC_BYTE;
+    stuffedData[stuffedDataIdx++] = STUFFED_FLAG_BYTE;
+  } else {
+    stuffedData[stuffedDataIdx++] = bcc2;
+  }
+
+  return stuffedDataIdx;
+}
+
 int sendSet(int fd) {
   resetAlarmVariables();
 
@@ -59,7 +89,9 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
   u_int8_t BCC2 = generateBCC2(data, dataSize);
 
   u_int8_t frameHead[4] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, controlByte, BCC1};
-  u_int8_t frameTail[2] = {BCC2, FLAG_BYTE};
+
+  u_int8_t stuffedData[MAX_STUFFED_DATA_SIZE];
+  int stuffedDataSize = stuffData(data, dataSize, BCC2, stuffedData);
 
   State state = START;
   while (state != STOP) {
@@ -73,8 +105,8 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
         printf("Sending data byte: %x\n", data[i]);
       } */
       write(fd, frameHead, 4);
-      write(fd, data, FRAME_DATA_SIZE);
-      write(fd, frameTail, 2);
+      write(fd, stuffedData, FRAME_DATA_SIZE);
+      write(fd, FLAG_BYTE, 1);
 
       messageFlag = 0;
       state = START;
