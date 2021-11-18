@@ -33,7 +33,7 @@
 #define RECEPTOR_ANSWER_ABYTE 0x03
 #define RECEPTOR_CMD_ABYTE 0x01
 
-#define FRAME_DATA_SIZE 9
+#define FRAME_DATA_SIZE 200
 #define MAX_STUFFED_DATA_SIZE (FRAME_DATA_SIZE * 2 + 2)
 
 typedef enum State {

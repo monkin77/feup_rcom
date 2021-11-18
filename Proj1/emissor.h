@@ -4,6 +4,22 @@
 #define ALARM_INTERVAL 3 // Time interval between alarm triggers
 
 /**
+ * @brief Opens the emissor for sending data.
+ * 
+ * @param fileName Name of the file representing the serial port.
+ * @return File descriptor or negative if there's an error.
+ */
+int openEmissor(char fileName[]);
+
+/**
+ * @brief Closes the emissor and the respective serial port.
+ * 
+ * @param fd Name of the file representing the serial port.
+ * @return int 0 if successful, 1 otherwise
+ */
+int closeEmissor(int fd);
+
+/**
  * @brief Attempts to setup connection, by sending a SET and verifying the response (UA)
  * 
  * @param fd Serial Port fd
@@ -18,8 +34,11 @@ int sendSet(int fd);
  * @param fd Serial Port fd
  * @return int 0 if successful, 1 otherwise
  */
-int sendDisc(int fd);
+int discEmissor(int fd);
 
+/**
+ * Handles an alarm interruption (to then resend a frame)
+ */
 void atende();
 
 /**
@@ -32,11 +51,18 @@ void atende();
  */
 int stuffData(u_int8_t* buffer, int size, u_int8_t bcc2, u_int8_t* stuffedData);
 
+/**
+ * @brief Sends a frame with the given data. The data can't exceed the specified max
+ * 
+ * @param fd File descriptor of the serial port
+ * @param data Buffer containing the data
+ * @param dataSize Size of the buffer
+ * @return int Zero if successful and non-zero otherwise
+ */
 int sendDataFrame(int fd, u_int8_t* data, int dataSize);
 
 /**
  * @brief Resets alarm variables
- * 
  */
 void resetAlarmVariables();
 

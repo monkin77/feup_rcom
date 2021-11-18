@@ -4,7 +4,31 @@
 #include "common.h"
 
 /**
- * State machine to receive a SET message from the receptor.
+ * @brief Opens the receptor for sending data.
+ * 
+ * @param fileName Name of the file representing the serial port.
+ * @return File descriptor or negative if there's an error.
+ */
+int openReceptor(char fileName[]);
+
+/**
+ * @brief Closes the receptor and the respective serial port.
+ * 
+ * @param fd Name of the file representing the serial port.
+ * @return int 0 if successful, 1 otherwise
+ */
+int closeReceptor(int fd);
+
+/**
+ * @brief Attempts to end the connection, by receiving a DISC, re-sending it and receiving a UA
+ * 
+ * @param fd Serial Port fd
+ * @return int 0 if successful, 1 otherwise
+ */
+int discReceptor(int fd);
+
+/**
+ * Receives a SET message from the receptor
  */
 int receiveSet(int fd);
 
