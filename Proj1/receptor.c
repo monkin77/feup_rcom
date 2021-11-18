@@ -47,7 +47,7 @@ int openReceptor(char filename[]) {
       return -1;
     }
 
-    if (receiveSet(fd)) return -1;
+    if (receiveSet(fd) < 0) return -1;
 }
 
 int closeReceptor(int fd) {
@@ -57,7 +57,7 @@ int closeReceptor(int fd) {
 
   tcsetattr(fd,TCSANOW,&oldtio);
   close(fd);
-  return 1;
+  return 0;
 }
 
 int receiveSet(int fd) {
@@ -66,10 +66,10 @@ int receiveSet(int fd) {
 
   while (state != STOP) {
     if (receiveSupervisionFrame(&state, fd, EMISSOR_CMD_ABYTE, SET_CONTROL_BYTE, NULL, mem) < 0)
-      return 1;
+      return -1;
   }
 
-  if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, UA_CONTROL_BYTE)) return 1;
+  if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, UA_CONTROL_BYTE) < 0) return -1;
 
   return 0;
 }
@@ -80,14 +80,14 @@ int discReceptor(int fd) {
   
   while (state != STOP) {
     if (receiveSupervisionFrame(&state, fd, EMISSOR_CMD_ABYTE, DISC_CONTROL_BYTE, NULL, mem) < 0)
-      return 1;
+      return -1;
   }
 
-  if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, DISC_CONTROL_BYTE)) return 1;
+  if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, DISC_CONTROL_BYTE) < 0) return -1;
 
   while (state != STOP) {
     if (receiveSupervisionFrame(&state, fd, EMISSOR_CMD_ABYTE, UA_CONTROL_BYTE, NULL, mem) < 0)
-      return 1;
+      return -1;
   }
 
   return 0;
@@ -127,7 +127,7 @@ int receiveDataFrame(int fd, u_int8_t* data) {
     res = read(fd, &byte, 1);
     if (res == -1) {
       perror("Read error\n");
-      return 1;
+      return -1;
     }
 
     switch (state) {
@@ -173,11 +173,11 @@ int receiveDataFrame(int fd, u_int8_t* data) {
           calculatedBCC2 = generateBCC2(data, dataSize);
 
           if (isRepeated) {
-            if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(r))) return 1;
+            if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(r)) < 0) return -1;
             state = START;
           }
           else if (calculatedBCC2 != bcc2) {
-            if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, REJ_CONTROL_BYTE(1 - r))) return 1;
+            if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, REJ_CONTROL_BYTE(1 - r)) < 0) return -1;
             state = START;
           }
           else {
@@ -189,7 +189,7 @@ int receiveDataFrame(int fd, u_int8_t* data) {
     }
   }
 
-  if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(1 - r))) return 1;
+  if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(1 - r)) < 0) return -1;
   r = 1 - r;
   return 0;
 }

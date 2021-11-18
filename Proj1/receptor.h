@@ -15,7 +15,7 @@ int openReceptor(char fileName[]);
  * @brief Closes the receptor and the respective serial port.
  * 
  * @param fd Name of the file representing the serial port.
- * @return int 0 if successful, 1 otherwise
+ * @return int 0 if successful, -1 otherwise
  */
 int closeReceptor(int fd);
 
@@ -48,7 +48,7 @@ int destuffData(u_int8_t* stuffed_data, int size, u_int8_t* buffer, u_int8_t* bc
  * 
  * @param fd 
  * @param data 
- * @return int 
+ * @return int 0 if success, -1 otherwise 
  */
 int receiveDataFrame(int fd, u_int8_t* data);
 

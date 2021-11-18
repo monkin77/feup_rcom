@@ -15,7 +15,7 @@ int openEmissor(char fileName[]);
  * @brief Closes the emissor and the respective serial port.
  * 
  * @param fd Name of the file representing the serial port.
- * @return int 0 if successful, 1 otherwise
+ * @return int 0 if successful, -1 otherwise
  */
 int closeEmissor(int fd);
 
@@ -23,7 +23,7 @@ int closeEmissor(int fd);
  * @brief Attempts to setup connection, by sending a SET and verifying the response (UA)
  * 
  * @param fd Serial Port fd
- * @return int 0 if successful, 1 otherwise
+ * @return int 0 if successful, -1 otherwise
  */
 int sendSet(int fd);
 
@@ -32,7 +32,7 @@ int sendSet(int fd);
  * @brief Attempts to end connection, by sending a DISC, verifying the response DISC and sending UA
  * 
  * @param fd Serial Port fd
- * @return int 0 if successful, 1 otherwise
+ * @return int 0 if successful, -1 otherwise
  */
 int discEmissor(int fd);
 
