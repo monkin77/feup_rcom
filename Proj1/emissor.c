@@ -5,6 +5,7 @@
 #pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
 
 const u_int8_t BCC_SET = EMISSOR_CMD_ABYTE ^ SET_CONTROL_BYTE; // Protection fields
+const u_int8_t BCC_DISC = EMISSOR_CMD_ABYTE ^ DISC_CONTROL_BYTE;
 const u_int8_t BCC_UA = RECEPTOR_ANSWER_ABYTE ^ UA_CONTROL_BYTE;
 
 volatile int STOP_EXEC=FALSE;
@@ -51,6 +52,7 @@ int stuffData(u_int8_t* buffer, int size, u_int8_t bcc2, u_int8_t* stuffedData) 
   return stuffedDataIdx;
 }
 
+
 int sendSet(int fd) {
   resetAlarmVariables();
 
@@ -70,19 +72,22 @@ int sendSet(int fd) {
       alarm(ALARM_INTERVAL);
     }
 
-    if (receive_supervision_machine(&state, fd, RECEPTOR_ANSWER_ABYTE, UA_CONTROL_BYTE, mem))
+    if (receiveSupervisionFrame(&state, fd, RECEPTOR_ANSWER_ABYTE, UA_CONTROL_BYTE, NULL, mem) ) {
       return 1;
+    }
   }
 
   printf("Read UA, success!\n");
+  alarm(0); // deactivate alarm
   return 0;
 }
+
 
 int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
   resetAlarmVariables();
 
   int res_read = 0, i = 0;
-  u_int8_t mem[3];
+  u_int8_t mem[3]; 
 
   u_int8_t controlByte = INFO_CONTROL_BYTE(s);
   u_int8_t BCC1 = EMISSOR_CMD_ABYTE ^ controlByte;
@@ -101,11 +106,9 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
     }
 
     if (messageFlag) {
-      /* for (int i =0; i < FRAME_DATA_SIZE; i++) {
-        printf("Sending data byte: %x\n", data[i]);
-      } */
+
       write(fd, frameHead, 4);
-      write(fd, stuffedData, FRAME_DATA_SIZE);
+      write(fd, stuffedData, stuffedDataSize);
       write(fd, FLAG_BYTE, 1);
 
       messageFlag = 0;
@@ -113,13 +116,51 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
       alarm(ALARM_INTERVAL);
     }
 
-    if (receive_supervision_machine(&state, fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(1-s), mem))
-      return 1;
+    int ret = receiveSupervisionFrame(&state, fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(1-s), REJ_CONTROL_BYTE(1-s), mem);
+    if (ret < 0) return 1;
+    else if (ret > 0) {
+      messageFlag = 1; // Resend the frame
+      conta++;
+    }
   }
 
+
   s = 1 - s;
+  alarm(0); // deactivate alarm
   return 0;
 }
+
+
+int sendDisc(int fd) {
+  resetAlarmVariables();
+  
+  State state = START;
+  u_int8_t mem[3], ans[5] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, DISC_CONTROL_BYTE, BCC_DISC, FLAG_BYTE};
+  
+  while (state != STOP) {
+    if (conta == 3) {
+      printf("Communication failed \n");
+      return 1;
+    }
+
+    if (messageFlag) {
+      write(fd, ans, sizeof(ans)); 
+      messageFlag = 0;
+      state = START;
+      alarm(ALARM_INTERVAL);
+    }
+
+    int ret = receiveSupervisionFrame(&state, fd, RECEPTOR_ANSWER_ABYTE, DISC_CONTROL_BYTE, NULL, mem);
+    
+    if (ret < 0) return 1;
+  }
+  
+  alarm(0);
+
+  if (sendSupervisionFrame(fd, EMISSOR_ANSWER_ABYTE, UA_CONTROL_BYTE)) return 1;
+  return 0;
+}
+
 
 int main(int argc, char** argv) {
     int fd,c, res_read = 0;
@@ -181,6 +222,9 @@ int main(int argc, char** argv) {
     u_int8_t data[FRAME_DATA_SIZE] = {0x51, 0x75, 0x65, 0x20, 0x72, 0x65, 0x67, 0x6f, 0x21};
     if (sendDataFrame(fd, data, FRAME_DATA_SIZE)) exit(1);  // CHANGE THIS TO DYNAMIC SIZE
     printf("Received RR!\n");
+
+    if (sendDisc(fd)) exit(1);
+    printf("Disconnected: DISC sent, received and UA sent\n");
     
     sleep(1); // Avoid changing config before sending data (transmission error)
     if (tcsetattr(fd,TCSANOW,&oldtio) == -1) {

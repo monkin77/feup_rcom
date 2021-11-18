@@ -7,9 +7,35 @@ int receiveSet(int fd) {
   u_int8_t mem[3];
 
   while (state != STOP) {
-    if (receive_supervision_machine(&state, fd, EMISSOR_CMD_ABYTE, SET_CONTROL_BYTE, mem))
+    if (receiveSupervisionFrame(&state, fd, EMISSOR_CMD_ABYTE, SET_CONTROL_BYTE, NULL, mem) < 0)
       return 1;
   }
+
+  printf("Sending UA...\n");
+  if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, UA_CONTROL_BYTE)) return 1;
+
+  return 0;
+}
+
+int receiveDisc(int fd) {
+  State state = START;
+  u_int8_t mem[3];
+  
+  while (state != STOP) {
+    if (receiveSupervisionFrame(&state, fd, EMISSOR_CMD_ABYTE, DISC_CONTROL_BYTE, NULL, mem) < 0)
+      return 1;
+  }
+  printf("Received DISC\n");
+
+  if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, DISC_CONTROL_BYTE)) return 1;
+  printf("Sent DISC\n");
+
+  while (state != STOP) {
+    if (receiveSupervisionFrame(&state, fd, EMISSOR_CMD_ABYTE, UA_CONTROL_BYTE, NULL, mem) < 0)
+      return 1;
+  }
+  printf("Received UA\n");
+
   return 0;
 }
 
@@ -36,8 +62,10 @@ int destuffData(u_int8_t* stuffed_data, int size, u_int8_t* buffer, u_int8_t* bc
 
 int receiveDataFrame(int fd, u_int8_t* data) {
   State state = START;
-  u_int8_t receivedAddress, receivedControl, calculatedBCC, ctrl = INFO_CONTROL_BYTE(1-r), calculatedBCC2, bcc2;
-  int currentDataIdx;
+  u_int8_t receivedAddress, receivedControl, calculatedBCC,
+          ctrl = INFO_CONTROL_BYTE(1-r), repeatedCtrl = INFO_CONTROL_BYTE(r), calculatedBCC2, bcc2;
+
+  int currentDataIdx, isRepeated;
   u_int8_t stuffed_data[MAX_STUFFED_DATA_SIZE];
 
   while (state != STOP) {
@@ -48,13 +76,13 @@ int receiveDataFrame(int fd, u_int8_t* data) {
       return 1;
     }
 
-
     switch (state) {
       case START:
         if (byte == FLAG_BYTE) state = FLAG_RCV;
         break;
 
       case FLAG_RCV:
+        isRepeated = 0;
         if (byte == FLAG_BYTE) continue;
         else if (byte == EMISSOR_CMD_ABYTE) {
           receivedAddress = byte;
@@ -64,8 +92,10 @@ int receiveDataFrame(int fd, u_int8_t* data) {
         break;
 
       case ADDR_RCV:
+        if (byte == repeatedCtrl) isRepeated = 1;
+
         if (byte == FLAG_BYTE) state = FLAG_RCV;
-        else if (byte == ctrl) {
+        else if (byte == ctrl || isRepeated) {
           receivedControl = byte;
           calculatedBCC = receivedAddress ^ receivedControl;
           state = CTRL_RCV;
@@ -87,10 +117,16 @@ int receiveDataFrame(int fd, u_int8_t* data) {
         else if (byte == FLAG_BYTE) {
           int dataSize = destuffData(stuffed_data, currentDataIdx, data, &bcc2);
           calculatedBCC2 = generateBCC2(data, dataSize);
-          if (calculatedBCC2 != bcc2) {
-            sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, REJ_CONTROL_BYTE(1-r));
+
+          if (isRepeated) {
+            if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(r))) return 1;
             state = START;
-          } else {
+          }
+          else if (calculatedBCC2 != bcc2) {
+            if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, REJ_CONTROL_BYTE(1 - r))) return 1;
+            state = START;
+          }
+          else {
             state = STOP;
           }
         }
@@ -99,6 +135,9 @@ int receiveDataFrame(int fd, u_int8_t* data) {
     }
   }
 
+  printf("Sending RR...\n");
+  if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(1 - r))) return 1;
+  r = 1 - r;
   return 0;
 }
 
@@ -159,17 +198,13 @@ int main(int argc, char** argv) {
     if (receiveSet(fd)) exit(1);
     
     printf("Received Set\n");
-    printf("Sending UA...\n");
-
-    if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, UA_CONTROL_BYTE)) exit(1);
 
     u_int8_t dataBuffer[FRAME_DATA_SIZE];
     if (receiveDataFrame(fd, dataBuffer)) exit(1);
     printf("Received data: %s\n", dataBuffer);
-    
-    printf("Sending RR...\n");
 
-    if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(r))) exit(1);
+    if (receiveDisc(fd)) exit(1);
+    printf("Disconnecting...\n");
 
     sleep(1); // Avoid changing config before sending data (transmission error)
 

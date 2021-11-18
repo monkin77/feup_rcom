@@ -22,6 +22,7 @@
 #define STUFFED_ESC_BYTE 0x5d
 
 #define SET_CONTROL_BYTE 0x03
+#define DISC_CONTROL_BYTE 0x0B
 #define UA_CONTROL_BYTE 0x07
 #define RR_CONTROL_BYTE(r) (BIT(7*r) | 0x05) // r -> 0 or 1  
 #define REJ_CONTROL_BYTE(r) (BIT(7*r) | 0x01)  // r -> 0 or 1  
@@ -62,6 +63,6 @@ int sendSupervisionFrame(int fd, u_int8_t addr, u_int8_t ctrl);
  * mem[2] = calculated bcc
  * Returns 0 on success, and 1 otherwise
  */
-int receive_supervision_machine(State* state, int fd, u_int8_t addr, u_int8_t ctrl, u_int8_t mem[]);
+int receiveSupervisionFrame(State* state, int fd, u_int8_t addr, u_int8_t ctrl, u_int8_t* rej, u_int8_t mem[]);
 
 #endif

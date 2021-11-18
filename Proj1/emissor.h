@@ -11,6 +11,15 @@
  */
 int sendSet(int fd);
 
+
+/**
+ * @brief Attempts to end connection, by sending a DISC, verifying the response DISC and sending UA
+ * 
+ * @param fd Serial Port fd
+ * @return int 0 if successful, 1 otherwise
+ */
+int sendDisc(int fd);
+
 void atende();
 
 /**
