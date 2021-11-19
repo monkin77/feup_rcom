@@ -82,8 +82,7 @@ int receiveSupervisionFrame(State* state, int fd, u_int8_t addr, u_int8_t ctrl, 
     default:
       break;
   }
-  if (*state == STOP && isRejected) {
-    return 1;
-  }
+ 
+  if (*state == STOP && isRejected) return 1;
   return 0;
 }

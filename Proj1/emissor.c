@@ -177,6 +177,7 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
     u_int8_t rejByte = REJ_CONTROL_BYTE(1-s);
     
     int ret = receiveSupervisionFrame(&state, fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(1-s), &rejByte, mem);
+
     if (ret < 0) {
       perror("Error receiving UA\n");
       return -1;
