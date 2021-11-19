@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS = -Wall
 LIBS =
 
-APP_PROTOCOL = appProtocol.c emissor.c receptor.c common.c
+APP_PROTOCOL = application.c emissor.c receptor.c common.c interface.c
 
 APP_PROTOCOL_OBJ = $(APP_PROTOCOL:.c=.o)
 

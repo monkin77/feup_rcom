@@ -5,49 +5,50 @@ struct termios oldtio;
 
 int openReceptor(char filename[]) {
   int fd, c, res_read, i = 0;
-    struct termios newtio;
-    u_int8_t buf[255];
+  struct termios newtio;
+  u_int8_t buf[255];
 
-    /*
-    Open serial port device for reading and writing and not as controlling tty
-    because we don't want to get killed if linenoise sends CTRL-C.
-    */
-
-    fd = open(filename, O_RDWR | O_NOCTTY);
-    if (fd < 0) {
-        perror(filename);
-        return -1;
-    }
-
-    if (tcgetattr(fd,&oldtio) == -1) { /* save current port settings */
-      perror("tcgetattr");
-      return -1;
-    }
-
-    bzero(&newtio, sizeof(newtio));
-    newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
-    newtio.c_iflag = IGNPAR;
-    newtio.c_oflag = 0;
-
-    /* set input mode (non-canonical, no echo,...) */
-    newtio.c_lflag = 0;
-    newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
-    newtio.c_cc[VMIN]     = 1;   /* reading 1 char at a time */
-
-
-  /* 
-    VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a 
-    leitura do(s) pr�ximo(s) caracter(es)
+  /*
+  Open serial port device for reading and writing and not as controlling tty
+  because we don't want to get killed if linenoise sends CTRL-C.
   */
 
-    tcflush(fd, TCIOFLUSH);
-
-    if (tcsetattr(fd,TCSANOW,&newtio) == -1) {
-      perror("tcsetattr");
+  fd = open(filename, O_RDWR | O_NOCTTY);
+  if (fd < 0) {
+      perror(filename);
       return -1;
-    }
+  }
 
-    if (receiveSet(fd) < 0) return -1;
+  if (tcgetattr(fd,&oldtio) == -1) { /* save current port settings */
+    perror("tcgetattr");
+    return -1;
+  }
+
+  bzero(&newtio, sizeof(newtio));
+  newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
+  newtio.c_iflag = IGNPAR;
+  newtio.c_oflag = 0;
+
+  /* set input mode (non-canonical, no echo,...) */
+  newtio.c_lflag = 0;
+  newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
+  newtio.c_cc[VMIN]     = 1;   /* reading 1 char at a time */
+
+
+/* 
+  VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a 
+  leitura do(s) pr�ximo(s) caracter(es)
+*/
+
+  tcflush(fd, TCIOFLUSH);
+
+  if (tcsetattr(fd,TCSANOW,&newtio) == -1) {
+    perror("tcsetattr");
+    return -1;
+  }
+
+  if (receiveSet(fd) < 0) return -1;
+  return fd;
 }
 
 int closeReceptor(int fd) {
@@ -119,7 +120,7 @@ int receiveDataFrame(int fd, u_int8_t* data) {
   u_int8_t receivedAddress, receivedControl, calculatedBCC,
           ctrl = INFO_CONTROL_BYTE(1-r), repeatedCtrl = INFO_CONTROL_BYTE(r), calculatedBCC2, bcc2;
 
-  int currentDataIdx, isRepeated;
+  int currentDataIdx, isRepeated, dataSize;
   u_int8_t stuffed_data[MAX_STUFFED_DATA_SIZE];
 
   while (state != STOP) {
@@ -169,7 +170,7 @@ int receiveDataFrame(int fd, u_int8_t* data) {
       case BCC_OK:
         if (currentDataIdx >= MAX_STUFFED_DATA_SIZE) state = START;
         else if (byte == FLAG_BYTE) {
-          int dataSize = destuffData(stuffed_data, currentDataIdx, data, &bcc2);
+          dataSize = destuffData(stuffed_data, currentDataIdx, data, &bcc2);
           calculatedBCC2 = generateBCC2(data, dataSize);
 
           if (isRepeated) {
@@ -191,5 +192,5 @@ int receiveDataFrame(int fd, u_int8_t* data) {
 
   if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(1 - r)) < 0) return -1;
   r = 1 - r;
-  return 0;
+  return dataSize;
 }

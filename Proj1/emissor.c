@@ -192,7 +192,7 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
 
   s = 1 - s;
   alarm(0); // deactivate alarm
-  return 0;
+  return dataSize;
 }
 
 

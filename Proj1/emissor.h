@@ -57,7 +57,7 @@ int stuffData(u_int8_t* buffer, int size, u_int8_t bcc2, u_int8_t* stuffedData);
  * @param fd File descriptor of the serial port
  * @param data Buffer containing the data
  * @param dataSize Size of the buffer
- * @return int Zero if successful and non-zero otherwise
+ * @return int Data size if successful and -1 otherwise
  */
 int sendDataFrame(int fd, u_int8_t* data, int dataSize);
 

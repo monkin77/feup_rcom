@@ -46,9 +46,9 @@ int destuffData(u_int8_t* stuffed_data, int size, u_int8_t* buffer, u_int8_t* bc
 /**
  * @brief Receives a data frame
  * 
- * @param fd 
- * @param data 
- * @return int 0 if success, -1 otherwise 
+ * @param fd File descriptor of the serial port
+ * @param data Buffer containing the data
+ * @return Data size if success, -1 otherwise 
  */
 int receiveDataFrame(int fd, u_int8_t* data);
 
