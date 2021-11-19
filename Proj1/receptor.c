@@ -4,9 +4,8 @@ int r = 1;
 struct termios oldtio;
 
 int openReceptor(char filename[]) {
-  int fd, c, res_read, i = 0;
+  int fd;
   struct termios newtio;
-  u_int8_t buf[255];
 
   /*
   Open serial port device for reading and writing and not as controlling tty
@@ -186,6 +185,9 @@ int receiveDataFrame(int fd, u_int8_t* data) {
           }
         }
         else stuffed_data[currentDataIdx++] = byte;
+        break;
+
+      default:
         break;
     }
   }

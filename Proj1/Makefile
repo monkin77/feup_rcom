@@ -1,20 +1,20 @@
 CC=gcc
-CFLAGS = -Wall
+CFLAGS = #-Wall
 LIBS =
 
-APP_PROTOCOL = application.c emissor.c receptor.c common.c interface.c
+APP = application.c emissor.c receptor.c common.c interface.c
 
-APP_PROTOCOL_OBJ = $(APP_PROTOCOL:.c=.o)
+APP_OBJ = $(APP:.c=.o)
 
-APP_PROTOCOL_EXEC = appProtocol
+APP_EXEC = application
 
-all: $(EMISSOR_EXEC) $(RECEPTOR_EXEC) $(APP_PROTOCOL_EXEC)
+all: $(APP_EXEC)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(APP_PROTOCOL_EXEC): $(APP_PROTOCOL_OBJ)
-	$(CC) $(CFLAGS) -o $@ $(APP_PROTOCOL_OBJ) $(LIBS)
+$(APP_EXEC): $(APP_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(APP_OBJ) $(LIBS)
 
 clean:
-	rm -rf $(APP_PROTOCOL_EXEC) *.o *.d
+	rm -rf $(APP_EXEC) *.o *.d

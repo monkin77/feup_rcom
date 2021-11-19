@@ -14,9 +14,9 @@
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
 #define FALSE 0
 #define TRUE 1
-#define BIT(n) 1 << n
+#define BIT(n) (1 << (n))
 
-#define FLAG_BYTE 0x7E
+#define FLAG_BYTE 0x7e
 #define ESC_BYTE 0x7d
 #define STUFFED_FLAG_BYTE 0x5e
 #define STUFFED_ESC_BYTE 0x5d

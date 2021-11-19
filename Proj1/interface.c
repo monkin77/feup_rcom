@@ -26,7 +26,7 @@ int llclose(int fd) {
   return 1;
 }
 
-int llwrite(int fd, char* buffer, int length) {
+int llwrite(int fd, u_int8_t* buffer, int length) {
   if (status == RECEPTOR) {
     perror("The receptor can't send data!\n");
     return -1;
@@ -35,7 +35,7 @@ int llwrite(int fd, char* buffer, int length) {
   return sendDataFrame(fd, buffer, length);
 }
 
-int llread(int fd, char* buffer) {
+int llread(int fd, u_int8_t* buffer) {
   if (status == EMISSOR) {
     perror("The emissor can't read data!\n");
     return -1;

@@ -1,5 +1,3 @@
-#include "common.h"
-#include "signal.h"
 #include "emissor.h"
 
 const u_int8_t BCC_SET = EMISSOR_CMD_ABYTE ^ SET_CONTROL_BYTE; // Protection fields
@@ -21,10 +19,8 @@ void atende() {
 }
 
 int openEmissor(char fileName[]) {
-  int fd, c, res_read = 0;
+  int fd;
   struct termios newtio;
-  u_int8_t buf[255];
-  int i, sum = 0, speed = 0;
 
   (void)signal(SIGALRM, atende);
 
@@ -122,12 +118,12 @@ int sendSet(int fd) {
 
   while (state != STOP) {
     if (conta == 3) {
-      printf("Communication failed\n");
+      perror("Communication failed\n");
       return -1;
     }
 
     if (messageFlag) {
-      write(fd, ans, sizeof(ans));
+      write(fd, ans, 5);
       messageFlag = 0;
       state = START;
       alarm(ALARM_INTERVAL);
@@ -138,7 +134,6 @@ int sendSet(int fd) {
     }
   }
 
-  printf("Read UA, success!\n");
   alarm(0); // deactivate alarm
   return 0;
 }
@@ -149,10 +144,8 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
     perror("Datasize cannot exceed the defined max frame size\n");
     return -1;
   }
-
   resetAlarmVariables();
 
-  int res_read = 0, i = 0;
   u_int8_t mem[3]; 
 
   u_int8_t controlByte = INFO_CONTROL_BYTE(s);
@@ -160,30 +153,34 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
   u_int8_t BCC2 = generateBCC2(data, dataSize);
 
   u_int8_t frameHead[4] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, controlByte, BCC1};
-
+  u_int8_t flagByte = FLAG_BYTE;
   u_int8_t stuffedData[MAX_STUFFED_DATA_SIZE];
   int stuffedDataSize = stuffData(data, dataSize, BCC2, stuffedData);
 
   State state = START;
   while (state != STOP) {
     if (conta == 3) {
-      printf("Communication failed\n");
+      perror("Communication failed\n");
       return -1;
     }
 
     if (messageFlag) {
-
       write(fd, frameHead, 4);
       write(fd, stuffedData, stuffedDataSize);
-      write(fd, FLAG_BYTE, 1);
+      write(fd, &flagByte, 1);
 
       messageFlag = 0;
       state = START;
       alarm(ALARM_INTERVAL);
     }
 
-    int ret = receiveSupervisionFrame(&state, fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(1-s), REJ_CONTROL_BYTE(1-s), mem);
-    if (ret < 0) return -1;
+    u_int8_t rejByte = REJ_CONTROL_BYTE(1-s);
+    int ret = receiveSupervisionFrame(&state, fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(1-s), &rejByte, mem);
+
+    if (ret < 0) {
+      perror("Error receiving UA\n");
+      return -1;
+    }
     else if (ret > 0) {
       messageFlag = 1; // Resend the frame
       conta++;
@@ -192,6 +189,7 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
 
   s = 1 - s;
   alarm(0); // deactivate alarm
+  printf("7\n");
   return dataSize;
 }
 
@@ -204,12 +202,12 @@ int discEmissor(int fd) {
   
   while (state != STOP) {
     if (conta == 3) {
-      printf("Communication failed \n");
+      perror("Communication failed \n");
       return -1;
     }
 
     if (messageFlag) {
-      write(fd, ans, sizeof(ans)); 
+      write(fd, ans, 5); 
       messageFlag = 0;
       state = START;
       alarm(ALARM_INTERVAL);

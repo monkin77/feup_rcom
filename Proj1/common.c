@@ -14,9 +14,9 @@ int sendSupervisionFrame(int fd, u_int8_t addr, u_int8_t ctrl) {
     const u_int8_t BCC = addr ^ ctrl;
     u_int8_t message[5] = {FLAG_BYTE, addr, ctrl, BCC, FLAG_BYTE};
     int res;
-    res = write(fd, message, sizeof(message));
+    res = write(fd, message, 5);
     if (res == -1) {
-        printf("Error writing\n");
+        perror("Error writing\n");
         return -1;
     }
     return 0;
@@ -26,7 +26,7 @@ int receiveSupervisionFrame(State* state, int fd, u_int8_t addr, u_int8_t ctrl, 
   int res, isRejected; u_int8_t byte;
   res = read(fd, &byte, 1);
   if (res == -1) {
-    printf("Read error\n");
+    perror("Read error\n");
     return -1;
   }
 
@@ -70,7 +70,10 @@ int receiveSupervisionFrame(State* state, int fd, u_int8_t addr, u_int8_t ctrl, 
       if (byte == FLAG_BYTE) *state = STOP;
       else *state = START;
       break;
+
+    default:
+      break;
   }
-  if (isRejected) return -1;
+  if (isRejected) return 1;
   return 0;
 }

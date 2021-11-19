@@ -6,14 +6,9 @@
 #include <stdio.h>
 #include <libgen.h>
 
-#include "emissor.h"
-#include "receptor.h"
+#include "interface.h"
 
-#define FRAME_DATA_SIZE 200
-
-// EMISSOR OR RECEPTOR
-#define EMISSOR 0
-#define RECEPTOR 1
+#define PACKET_DATA_SIZE 200
 
 // T BYTE 
 #define T_FILE_SIZE 0
@@ -26,27 +21,10 @@
 
 // DATA PACKET CONSTANTS
 #define NUM_DATA_ADDITIONAL_FIELDS 4
+#define DATA_ACTUAL_SIZE (PACKET_DATA_SIZE - NUM_DATA_ADDITIONAL_FIELDS)
 #define NUM_OCTETS_MULTIPLIER 256
 
 #define min(a,b) (((a) < (b)) ? (a) : (b))
-
-/**
-*   @brief Opens connection with file
-*
-*   @param fileName 
-*   @param status 0 -> Transmitter, 1 -> Receiver
-*   @return file descriptor if OK, negative otherwise
-*/
-int llopen(char* fileName, int status);
-
-
-/**
-*   @brief Closes connection with file
-*
-*   @param fd -> File descriptor of the file 
-*   @param status 0 -> Transmitter, 1 -> Receiver
-*/
-int llclose(int fd, int status);
 
 
 /**
@@ -61,8 +39,16 @@ void buildDataPacket(u_int8_t* dataPacket, int dataPacketSize, u_int8_t* frameDa
 * @param fileSize Size of the file in bytes
 * @return Positive if succeeded, negative otherwise
 */
-int sendDataPacket(int fd, FILE* ptr, long fileSize);
+int sendData(int fd, FILE* ptr, long fileSize);
 
 int sendControlPacket (int fd, u_int8_t controlField, long fileSize, char fileName[]);
+
+int sendFile(int fd, char filePath[]);
+
+
+
+int readFile(int fd);
+
+int readControlPacket(int fd, int controlField, u_int8_t buffer[], char** fileName, long* fileSize);
 
 #endif

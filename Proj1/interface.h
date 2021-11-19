@@ -34,7 +34,7 @@ int llclose(int fd);
  * @param length Size of the buffer
  * @return int Data size if successful and -1 otherwise
  */
-int llwrite(int fd, char* buffer, int length);
+int llwrite(int fd, u_int8_t* buffer, int length);
 
 /**
  * @brief Receives a data packet
@@ -43,6 +43,6 @@ int llwrite(int fd, char* buffer, int length);
  * @param buffer Buffer containing the data
  * @return Data size if success, -1 otherwise 
  */
-int llread(int fd, char* buffer);
+int llread(int fd, u_int8_t *buffer);
 
 #endif

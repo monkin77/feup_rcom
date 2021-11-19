@@ -1,6 +1,9 @@
 #ifndef EMISSOR_H
 #define EMISSOR_H
 
+#include "common.h"
+#include <signal.h>
+
 #define ALARM_INTERVAL 3 // Time interval between alarm triggers
 
 /**
