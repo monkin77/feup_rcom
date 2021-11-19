@@ -48,32 +48,42 @@ int receiveSupervisionFrame(State* state, int fd, u_int8_t addr, u_int8_t ctrl, 
 
     case ADDR_RCV:
       if (rej != NULL)
-        if (byte == *rej) isRejected = 1;
+        if (byte == *rej) 
+          isRejected = 1;
 
-      if (byte == FLAG_BYTE) *state = FLAG_RCV;
+      if (byte == FLAG_BYTE) {
+        *state = FLAG_RCV;
+      }
       else if (byte == ctrl || isRejected) {
         mem[1] = byte;
         mem[2] = mem[0] ^ mem[1];
         *state = CTRL_RCV;
       }
-
-      else *state = START;
+      else {
+        *state = START;
+      }
       break;
 
     case CTRL_RCV:
-      if (byte == FLAG_BYTE) *state = FLAG_RCV;
+      if (byte == FLAG_BYTE) {
+        *state = FLAG_RCV;
+      }
       else if (mem[2] == byte) *state = BCC_OK;
       else *state = START;
       break;
 
     case BCC_OK:
-      if (byte == FLAG_BYTE) *state = STOP;
+      if (byte == FLAG_BYTE) {
+        *state = STOP;
+      }
       else *state = START;
       break;
 
     default:
       break;
   }
-  if (isRejected) return 1;
+  if (*state == STOP && isRejected) {
+    return 1;
+  }
   return 0;
 }

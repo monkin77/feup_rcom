@@ -142,7 +142,6 @@ int readFile(int fd) {
     if (buffer[0] == END_CTRL) {  
       break;  // Reached END control packet
     }
-
     if (buffer[0] != DATA_CTRL) {
       perror("Invalid control byte for data packet\n");
       return -1;
@@ -156,6 +155,7 @@ int readFile(int fd) {
     memcpy(dataField, buffer + NUM_DATA_ADDITIONAL_FIELDS, dataFieldOctets);
     
     // Write to opened file
+    sequenceNum++;
     fwrite(dataField, sizeof(u_int8_t), dataFieldOctets, ptr);
 
     free(dataField);

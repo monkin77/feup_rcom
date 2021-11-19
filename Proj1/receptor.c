@@ -1,7 +1,7 @@
 #include "receptor.h"
 
 int r = 1;
-struct termios oldtio;
+struct termios oldtioreceptor;
 
 int openReceptor(char filename[]) {
   int fd;
@@ -18,7 +18,7 @@ int openReceptor(char filename[]) {
       return -1;
   }
 
-  if (tcgetattr(fd,&oldtio) == -1) { /* save current port settings */
+  if (tcgetattr(fd,&oldtioreceptor) == -1) { /* save current port settings */
     perror("tcgetattr");
     return -1;
   }
@@ -55,7 +55,7 @@ int closeReceptor(int fd) {
 
   sleep(1); // Avoid changing config before sending data (transmission error)
 
-  tcsetattr(fd,TCSANOW,&oldtio);
+  tcsetattr(fd,TCSANOW,&oldtioreceptor);
   close(fd);
   return 0;
 }
@@ -191,8 +191,7 @@ int receiveDataFrame(int fd, u_int8_t* data) {
         break;
     }
   }
-
-  if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(1 - r)) < 0) return -1;
+  if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(r)) < 0) return -1;
   r = 1 - r;
   return dataSize;
 }
