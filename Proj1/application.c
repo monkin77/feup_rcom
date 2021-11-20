@@ -126,6 +126,7 @@ int readFile(int fd) {
   long fileSize;
 
   if (readControlPacket(fd, START_CTRL, buffer, &fileName, &fileSize) < 0) return -1;
+  // TO REMOVE!
   char* newFileName = malloc(strlen(fileName) + 2);
   snprintf(newFileName, strlen(fileName) + 2, "%s%s", fileName, "2");
 
@@ -155,9 +156,9 @@ int readFile(int fd) {
     memcpy(dataField, buffer + NUM_DATA_ADDITIONAL_FIELDS, dataFieldOctets);
     
     // Write to opened file
-    sequenceNum++;
     fwrite(dataField, sizeof(u_int8_t), dataFieldOctets, ptr);
 
+    sequenceNum++;
     free(dataField);
   }
 
@@ -171,14 +172,15 @@ int main(int argc, char** argv) {
   if (argc < 3 ||
     ((strcmp("/dev/ttyS0", argv[1])) && (strcmp("/dev/ttyS1", argv[1])))) {
 
-    printf("Usage: appProtocol serialPort type\nex: appProtocol /dev/ttyS0 0\n");
+    printf("Usage: application serialPort type <fileName>\nex: application /dev/ttyS0 0 ./imagem.gif\n<fileName> default value: ./pinguim.gif\n");
     exit(1);
   }
 
   int fd, status = atoi(argv[2]);
+  char* filePath = argc > 3 ? argv[3] : "./pinguim.gif";
 
   if (status != EMISSOR && status != RECEPTOR) {
-    printf("Usage: appProtocol serialPort type\n\n0-Emissor\n1-Receptor");
+    printf("application 2nd argument(type) should be either 0 or 1.\n0-Emissor\n1-Receptor\n");
     exit(1);
   }
 
@@ -188,7 +190,7 @@ int main(int argc, char** argv) {
   }
 
   if (status == EMISSOR) {
-    if (sendFile(fd, "./pinguim.gif") < 0) {
+    if (sendFile(fd, filePath) < 0) {
       perror("Error sending file\n!n");
       exit(1);
     }
