@@ -31,12 +31,12 @@ int openEmissor(char fileName[]) {
 
   fd = open(fileName, O_RDWR | O_NOCTTY );
   if (fd < 0) {
-    perror(fileName);
+    fprintf(stderr, "%s", fileName);
     return -1;
   }
 
   if (tcgetattr(fd,&oldtio) == -1) { /* save current port settings */
-    perror("tcgetattr");
+    fprintf(stderr, "tcgetattr");
     return -1;
   }
 
@@ -59,7 +59,7 @@ int openEmissor(char fileName[]) {
   tcflush(fd, TCIOFLUSH);
 
   if (tcsetattr(fd,TCSANOW,&newtio) == -1) {
-    perror("tcsetattr");
+    fprintf(stderr, "tcsetattr");
     return -1;
   }
 
@@ -72,7 +72,7 @@ int closeEmissor(int fd) {
   
   sleep(1); // Avoid changing config before sending data (transmission error)
   if (tcsetattr(fd,TCSANOW,&oldtio) == -1) {
-        perror("tcsetattr");
+        fprintf(stderr, "tcsetattr");
         return -1;
   }
   close(fd);
@@ -118,7 +118,7 @@ int sendSet(int fd) {
 
   while (state != STOP) {
     if (conta == 3) {
-      perror("Communication failed\n");
+      fprintf(stderr, "Communication failed\n");
       return -1;
     }
 
@@ -141,7 +141,7 @@ int sendSet(int fd) {
 
 int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
   if (dataSize > FRAME_DATA_SIZE) {
-    perror("Datasize cannot exceed the defined max frame size\n");
+    fprintf(stderr, "Datasize cannot exceed the defined max frame size\n");
     return -1;
   }
   resetAlarmVariables();
@@ -160,7 +160,7 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
   State state = START;
   while (state != STOP) {
     if (conta == 3) {
-      perror("Communication failed\n");
+      fprintf(stderr, "Communication failed\n");
       return -1;
     }
 
@@ -179,7 +179,7 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
     int ret = receiveSupervisionFrame(&state, fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(1-s), &rejByte, mem);
 
     if (ret < 0) {
-      perror("Error receiving UA\n");
+      fprintf(stderr, "Error receiving UA\n");
       return -1;
     }
     else if (ret > 0) {
@@ -201,7 +201,7 @@ int discEmissor(int fd) {
   
   while (state != STOP) {
     if (conta == 3) {
-      perror("Communication failed \n");
+      fprintf(stderr, "Communication failed \n");
       return -1;
     }
 

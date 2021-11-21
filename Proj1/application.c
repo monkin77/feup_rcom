@@ -3,7 +3,7 @@
 int sendFile(int fd, char filePath[]) {
   FILE *ptr;
   if ((ptr = fopen(filePath, "rb")) == NULL) {
-    perror("Error opening file\n");
+    fprintf(stderr, "Error opening file\n");
     return -1;
   }
 
@@ -25,7 +25,7 @@ int sendFile(int fd, char filePath[]) {
 int sendControlPacket (int fd, u_int8_t controlField, long fileSize, char fileName[]) {
   size_t fileNameSize = strlen(fileName) + 1;
   if (fileNameSize > 0xff) {
-    perror("File name can only be up to 255 chars long\n");
+    fprintf(stderr, "File name can only be up to 255 chars long\n");
     return -1;
   }
 
@@ -66,7 +66,7 @@ int sendData(int fd, FILE* ptr, long fileSize) {
     buildDataPacket(dataPacket, dataPacketSize, frameData, frameDataSize, sequenceNum);
 
     if (llwrite(fd, dataPacket, dataPacketSize) < 0) {
-      perror("Error sending data packet\n");
+      fprintf(stderr, "Error sending data packet\n");
       return -1;
     }
 
@@ -91,11 +91,11 @@ void buildDataPacket(u_int8_t* dataPacket, int dataPacketSize, u_int8_t* frameDa
 int readControlPacket(int fd, int controlField, u_int8_t buffer[], char** fileName, long* fileSize) {
   int size, currIdx = 1;
   if ((size = llread(fd, buffer)) < 0) {
-    perror("Error reading Control Packet\n");
+    fprintf(stderr, "Error reading Control Packet\n");
     return -1;
   }
   if (buffer[0] != controlField) {
-    perror("Invalid control byte\n");
+    fprintf(stderr, "Invalid control byte\n");
     return -1;
   }
 
@@ -129,7 +129,7 @@ int readFile(int fd) {
 
   FILE *ptr;
   if ((ptr = fopen(fileName, "wb")) == NULL) {
-    perror("Error opening file\n");
+    fprintf(stderr, "Error opening file\n");
     return -1;
   }
 
@@ -140,11 +140,11 @@ int readFile(int fd) {
       break;  // Reached END control packet
     }
     if (buffer[0] != DATA_CTRL) {
-      perror("Invalid control byte for data packet\n");
+      fprintf(stderr, "Invalid control byte for data packet\n");
       return -1;
     }
     if (buffer[1] != sequenceNum) {
-      perror("Invalid sequence number received in data packet!\n");
+      fprintf(stderr, "Invalid sequence number received in data packet!\n");
       return -1;
     }
     int dataFieldOctets = buffer[2] * NUM_OCTETS_MULTIPLIER + buffer[3];
@@ -180,24 +180,24 @@ int main(int argc, char** argv) {
   }
 
   if ((fd = llopen(argv[1], status)) < 0) {
-    perror("Error on llopen\n");
+    fprintf(stderr, "Failed to connect on llopen. The receiver is probably disconnected\n");
     exit(1);
   }
 
   if (status == EMISSOR) {
     if (sendFile(fd, filePath) < 0) {
-      perror("Error sending file\n!n");
+      fprintf(stderr, "Error sending file\n!n");
       exit(1);
     }
   } else {
     if (readFile(fd) < 0) {
-      perror("Error reading file!\n");
+      fprintf(stderr, "Error reading file!\n");
       exit(1);
     }
   }
 
   if (llclose(fd) < 0) {
-    perror("Error on llclose\n");
+    fprintf(stderr, "Error on llclose\n");
     exit(1);
   }
 

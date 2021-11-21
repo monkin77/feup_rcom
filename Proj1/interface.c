@@ -9,7 +9,7 @@ int llopen(char* fileName, int newStatus) {
   if (status == EMISSOR) fd = openEmissor(fileName);
   else if (status == RECEPTOR) fd = openReceptor(fileName);
   else {
-    perror("Status is either emissor (0) or receptor (1)\n");
+    fprintf(stderr, "Status is either emissor (0) or receptor (1)\n");
     return -1;
   }
 
@@ -28,7 +28,7 @@ int llclose(int fd) {
 
 int llwrite(int fd, u_int8_t* buffer, int length) {
   if (status == RECEPTOR) {
-    perror("The receptor can't send data!\n");
+    fprintf(stderr, "The receptor can't send data!\n");
     return -1;
   }
 
@@ -37,7 +37,7 @@ int llwrite(int fd, u_int8_t* buffer, int length) {
 
 int llread(int fd, u_int8_t* buffer) {
   if (status == EMISSOR) {
-    perror("The emissor can't read data!\n");
+    fprintf(stderr, "The emissor can't read data!\n");
     return -1;
   }
 

@@ -14,12 +14,12 @@ int openReceptor(char filename[]) {
 
   fd = open(filename, O_RDWR | O_NOCTTY);
   if (fd < 0) {
-      perror(filename);
+      fprintf(stderr, "%s", filename);
       return -1;
   }
 
   if (tcgetattr(fd,&oldtioreceptor) == -1) { /* save current port settings */
-    perror("tcgetattr");
+    fprintf(stderr, "tcgetattr");
     return -1;
   }
 
@@ -42,7 +42,7 @@ int openReceptor(char filename[]) {
   tcflush(fd, TCIOFLUSH);
 
   if (tcsetattr(fd,TCSANOW,&newtio) == -1) {
-    perror("tcsetattr");
+    fprintf(stderr, "tcsetattr");
     return -1;
   }
 
@@ -103,7 +103,7 @@ int destuffData(u_int8_t* stuffed_data, int size, u_int8_t* buffer, u_int8_t* bc
       u_int8_t nextByte = stuffed_data[++i];
       if (nextByte == STUFFED_FLAG_BYTE) destuffed_buffer[bufferIdx++] = FLAG_BYTE;
       else if (nextByte == STUFFED_ESC_BYTE) destuffed_buffer[bufferIdx++] = ESC_BYTE;
-      else perror("There should be no isolated ESC byte \n");
+      else fprintf(stderr, "There should be no isolated ESC byte \n");
     } else destuffed_buffer[bufferIdx++] = currByte;
   }
   bufferIdx--;
@@ -126,7 +126,7 @@ int receiveDataFrame(int fd, u_int8_t* data) {
     int res; u_int8_t byte;
     res = read(fd, &byte, 1);
     if (res == -1) {
-      perror("Read error\n");
+      fprintf(stderr, "Read error\n");
       return -1;
     }
 
