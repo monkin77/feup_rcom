@@ -136,9 +136,9 @@ int receiveDataFrame(int fd, u_int8_t* data) {
         break;
 
       case FLAG_RCV:
-        isRepeated = 0;
         if (byte == FLAG_BYTE) continue;
         else if (byte == EMISSOR_CMD_ABYTE) {
+          isRepeated = 0;
           receivedAddress = byte;
           state = ADDR_RCV;
         }
@@ -173,7 +173,7 @@ int receiveDataFrame(int fd, u_int8_t* data) {
           calculatedBCC2 = generateBCC2(data, dataSize);
 
           if (isRepeated) {
-            if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(r)) < 0) return -1;
+            if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(1 - r)) < 0) return -1;
             state = START;
           }
           else if (calculatedBCC2 != bcc2) {

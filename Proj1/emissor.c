@@ -174,7 +174,7 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
       alarm(ALARM_INTERVAL);
     }
 
-    u_int8_t rejByte = REJ_CONTROL_BYTE(1-s);
+    u_int8_t rejByte = REJ_CONTROL_BYTE(s);
     
     int ret = receiveSupervisionFrame(&state, fd, RECEPTOR_ANSWER_ABYTE, RR_CONTROL_BYTE(1-s), &rejByte, mem);
 
