@@ -72,7 +72,7 @@ int sendData(int fd, FILE* ptr, long fileSize) {
 
     free(frameData); free(dataPacket);
 
-    sequenceNum = (sequenceNum + 1) % 255;
+    sequenceNum = (sequenceNum + 1) % 256;
   }
 
   free(data);
@@ -126,13 +126,9 @@ int readFile(int fd) {
   long fileSize;
 
   if (readControlPacket(fd, START_CTRL, buffer, &fileName, &fileSize) < 0) return -1;
-  // TO REMOVE!
-  char* newFileName = malloc(strlen(fileName) + 2);
-  snprintf(newFileName, strlen(fileName) + 2, "%s%s", fileName, "2");
-
 
   FILE *ptr;
-  if ((ptr = fopen(newFileName, "wb")) == NULL) {
+  if ((ptr = fopen(fileName, "wb")) == NULL) {
     perror("Error opening file\n");
     return -1;
   }
@@ -158,12 +154,11 @@ int readFile(int fd) {
     // Write to opened file
     fwrite(dataField, sizeof(u_int8_t), dataFieldOctets, ptr);
 
-    sequenceNum++;
+    sequenceNum = (sequenceNum + 1) % 256;
     free(dataField);
   }
 
   free(fileName);
-  free(newFileName);
   fclose(ptr);
   return fileSize;
 }
