@@ -3,6 +3,8 @@
 
 #include "common.h"
 #include <signal.h>
+#include <time.h>
+#include <stdlib.h>
 
 #define ALARM_INTERVAL 3 // Time interval between alarm triggers
 

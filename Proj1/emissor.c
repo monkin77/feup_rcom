@@ -139,6 +139,16 @@ int sendSet(int fd) {
 }
 
 
+void insertError(u_int8_t *data, int dataSize) {
+  int r = rand() % 100;
+  
+  if (r < 40) {
+    data[0] = 20;
+  }
+
+}
+
+
 int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
   if (dataSize > FRAME_DATA_SIZE) {
     fprintf(stderr, "Datasize cannot exceed the defined max frame size\n");
@@ -155,10 +165,13 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
   u_int8_t frameHead[4] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, controlByte, BCC1};
   u_int8_t flagByte = FLAG_BYTE;
   u_int8_t stuffedData[MAX_STUFFED_DATA_SIZE];
-  int stuffedDataSize = stuffData(data, dataSize, BCC2, stuffedData);
 
   State state = START;
   while (state != STOP) {
+    
+    int stuffedDataSize = stuffData(data, dataSize, BCC2, stuffedData);
+    insertError(stuffedData, stuffedDataSize);
+
     if (conta == 3) {
       fprintf(stderr, "Communication failed\n");
       return -1;

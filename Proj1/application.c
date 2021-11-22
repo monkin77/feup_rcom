@@ -53,7 +53,6 @@ int sendControlPacket (int fd, u_int8_t controlField, long fileSize, char fileNa
 int sendData(int fd, FILE* ptr, long fileSize) {
   u_int8_t sequenceNum = 0;
 
-  printf("File size: %ld", fileSize);
   u_int8_t* data = malloc(fileSize);
   fread(data, sizeof(u_int8_t), fileSize, ptr);
 
@@ -165,6 +164,8 @@ int readFile(int fd) {
 }
 
 int main(int argc, char** argv) {
+  srand(time(NULL));
+
   if (argc < 3 ||
     ((strcmp("/dev/ttyS0", argv[1])) && (strcmp("/dev/ttyS1", argv[1])))) {
 
