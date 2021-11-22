@@ -16,7 +16,7 @@ int sendSupervisionFrame(int fd, u_int8_t addr, u_int8_t ctrl) {
     int res;
     res = write(fd, message, 5);
     if (res == -1) {
-        fprintf(stderr, "Error writing\n");
+        fprintf(stderr, "Error writing. Serial cable is probably disconnected\n");
         return -1;
     }
     return 0;
@@ -28,7 +28,7 @@ int receiveSupervisionFrame(State* state, int fd, u_int8_t addr, u_int8_t ctrl, 
   int res; u_int8_t byte;
   res = read(fd, &byte, 1);
   if (res == -1) {
-    fprintf(stderr, "Read error\n");
+    fprintf(stderr, "Read error. Serial cable is probably disconnected\n");
     return -1;
   }
 
