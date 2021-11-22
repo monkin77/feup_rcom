@@ -142,7 +142,7 @@ int sendSet(int fd) {
 void insertError(u_int8_t *data, int dataSize) {
   int r = rand() % 100;
   
-  if (r < 40) {
+  if (r < 5) {
     data[0] = 20;
   }
 
