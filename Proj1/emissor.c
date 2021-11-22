@@ -32,7 +32,7 @@ int openEmissor(char fileName[]) {
 
   fd = open(fileName, O_RDWR | O_NOCTTY );
   if (fd < 0) {
-    fprintf(stderr, "%s", fileName);
+    fprintf(stderr, "%s\n", fileName);
     return -1;
   }
 
@@ -60,7 +60,7 @@ int openEmissor(char fileName[]) {
   tcflush(fd, TCIOFLUSH);
 
   if (tcsetattr(fd,TCSANOW,&newtio) == -1) {
-    fprintf(stderr, "tcsetattr");
+    fprintf(stderr, "tcsetattr error\n");
     return -1;
   }
 
@@ -73,7 +73,7 @@ int closeEmissor(int fd) {
   
   sleep(1); // Avoid changing config before sending data (transmission error)
   if (tcsetattr(fd,TCSANOW,&oldtio) == -1) {
-        fprintf(stderr, "tcsetattr");
+        fprintf(stderr, "tcsetattr error\n");
         return -1;
   }
   close(fd);
@@ -124,7 +124,10 @@ int sendSet(int fd) {
     }
 
     if (messageFlag) {
-      write(fd, ans, 5);
+      if (write(fd, ans, 5) < 0) {
+        fprintf(stderr, "Error writing. Serial cable is probably disconnected\n");
+        return -1;
+      }
       messageFlag = 0;
       state = START;
       alarm(ALARM_INTERVAL);
@@ -184,9 +187,14 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
     }
 
     if (messageFlag) {
-      write(fd, frameHead, 4);
-      write(fd, stuffedData, stuffedDataSize);
-      write(fd, &flagByte, 1);
+      int res1 = write(fd, frameHead, 4);
+      int res2 = write(fd, stuffedData, stuffedDataSize);
+      int res3 = write(fd, &flagByte, 1);
+
+      if (res1 < 0 || res2 < 0 || res3 < 0) {
+        fprintf(stderr, "Error writing. Serial cable is probably disconnected\n");
+        return -1;
+      }
 
       messageFlag = 0;
       state = START;
@@ -225,7 +233,11 @@ int discEmissor(int fd) {
     }
 
     if (messageFlag) {
-      write(fd, ans, 5); 
+      if (write(fd, ans, 5) < 0) {
+        fprintf(stderr, "Error writing. Serial cable is probably disconnected\n");
+        return -1;
+      }
+
       messageFlag = 0;
       state = START;
       alarm(ALARM_INTERVAL);

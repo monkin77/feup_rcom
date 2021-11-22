@@ -14,7 +14,7 @@ int openReceptor(char filename[]) {
 
   fd = open(filename, O_RDWR | O_NOCTTY);
   if (fd < 0) {
-      fprintf(stderr, "%s", filename);
+      fprintf(stderr, "%s\n", filename);
       return -1;
   }
 
@@ -42,7 +42,7 @@ int openReceptor(char filename[]) {
   tcflush(fd, TCIOFLUSH);
 
   if (tcsetattr(fd,TCSANOW,&newtio) == -1) {
-    fprintf(stderr, "tcsetattr");
+    fprintf(stderr, "tcsetattr error\n");
     return -1;
   }
 
@@ -126,7 +126,7 @@ int receiveDataFrame(int fd, u_int8_t* data) {
     int res; u_int8_t byte;
     res = read(fd, &byte, 1);
     if (res == -1) {
-      fprintf(stderr, "Read error\n");
+      fprintf(stderr, "Read error. Serial cable is probably disconnected\n");
       return -1;
     }
 
