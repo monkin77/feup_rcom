@@ -178,6 +178,7 @@ int receiveDataFrame(int fd, u_int8_t* data) {
           }
           else if (calculatedBCC2 != bcc2) {
             if (sendSupervisionFrame(fd, RECEPTOR_ANSWER_ABYTE, REJ_CONTROL_BYTE(1 - r)) < 0) return -1;
+            printf("Sending reject\n");
             state = START;
           }
           else {

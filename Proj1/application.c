@@ -164,6 +164,8 @@ int readFile(int fd) {
 }
 
 int main(int argc, char** argv) {
+  srand(time(NULL));
+
   if (argc < 3 ||
     ((strcmp("/dev/ttyS0", argv[1])) && (strcmp("/dev/ttyS1", argv[1])))) {
 
