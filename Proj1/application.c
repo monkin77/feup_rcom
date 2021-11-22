@@ -8,7 +8,7 @@ int sendFile(int fd, char filePath[]) {
   }
 
   fseek(ptr, 0, SEEK_END);
-  long fileSize = ftell(ptr) + 1;
+  long fileSize = ftell(ptr);
   rewind(ptr);
   if (sendControlPacket(fd, START_CTRL, fileSize, basename(filePath)) < 0) return -1;
 
@@ -53,6 +53,7 @@ int sendControlPacket (int fd, u_int8_t controlField, long fileSize, char fileNa
 int sendData(int fd, FILE* ptr, long fileSize) {
   u_int8_t sequenceNum = 0;
 
+  printf("File size: %ld", fileSize);
   u_int8_t* data = malloc(fileSize);
   fread(data, sizeof(u_int8_t), fileSize, ptr);
 
