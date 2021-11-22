@@ -142,19 +142,12 @@ int sendSet(int fd) {
   return 0;
 }
 
-
-void insertError(u_int8_t *data, int dataSize, u_int8_t* head) {
+void insertError(u_int8_t *data, int dataIndex, int probability) {
   int r = rand() % 100;
   
-  if (r < 5) {
-    data[0] += 2;
+  if (r < probability) {
+    data[dataIndex] += 2;
   }
-
-  r = rand () % 100;
-  if (r < 5) {
-    head[0] += 3;
-  }
-
 }
 
 
@@ -179,7 +172,8 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
     
     int stuffedDataSize = stuffData(data, dataSize, BCC2, stuffedData);
     u_int8_t frameHead[4] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, controlByte, BCC1};
-    insertError(stuffedData, stuffedDataSize, frameHead);
+    insertError(stuffedData, 0, 5);
+    insertError(frameHead, 2, 5);
 
     if (conta == 3) {
       fprintf(stderr, "Communication failed\n");

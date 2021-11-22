@@ -71,4 +71,13 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize);
  */
 void resetAlarmVariables();
 
+/**
+ * @brief Inserts an error in a given buffer, given a certain probability
+ * 
+ * @param data buffer that may receive errors
+ * @param dataIndex Index that will be changed
+ * @param probability probability of introducing error
+ */
+void insertError(u_int8_t *data, int dataIndex, int probability);
+
 #endif
