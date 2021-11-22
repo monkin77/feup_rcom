@@ -14,8 +14,9 @@ void resetAlarmVariables() {
 }
 
 void atende() {
-   messageFlag = 1;
-   conta++;
+  printf("Timeout\n");
+  messageFlag = 1;
+  conta++;
 }
 
 int openEmissor(char fileName[]) {
@@ -139,11 +140,16 @@ int sendSet(int fd) {
 }
 
 
-void insertError(u_int8_t *data, int dataSize) {
+void insertError(u_int8_t *data, int dataSize, u_int8_t* head) {
   int r = rand() % 100;
   
   if (r < 5) {
-    data[0] = 20;
+    data[0] += 2;
+  }
+
+  r = rand () % 100;
+  if (r < 5) {
+    head[0] += 3;
   }
 
 }
@@ -162,7 +168,6 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
   u_int8_t BCC1 = EMISSOR_CMD_ABYTE ^ controlByte;
   u_int8_t BCC2 = generateBCC2(data, dataSize);
 
-  u_int8_t frameHead[4] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, controlByte, BCC1};
   u_int8_t flagByte = FLAG_BYTE;
   u_int8_t stuffedData[MAX_STUFFED_DATA_SIZE];
 
@@ -170,7 +175,8 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
   while (state != STOP) {
     
     int stuffedDataSize = stuffData(data, dataSize, BCC2, stuffedData);
-    insertError(stuffedData, stuffedDataSize);
+    u_int8_t frameHead[4] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, controlByte, BCC1};
+    insertError(stuffedData, stuffedDataSize, frameHead);
 
     if (conta == 3) {
       fprintf(stderr, "Communication failed\n");
