@@ -22,8 +22,10 @@ int sendSupervisionFrame(int fd, u_int8_t addr, u_int8_t ctrl) {
     return 0;
 }
 
+int isRejected;
+
 int receiveSupervisionFrame(State* state, int fd, u_int8_t addr, u_int8_t ctrl, u_int8_t* rej, u_int8_t* mem) {
-  int res, isRejected; u_int8_t byte;
+  int res; u_int8_t byte;
   res = read(fd, &byte, 1);
   if (res == -1) {
     fprintf(stderr, "Read error\n");
@@ -48,8 +50,10 @@ int receiveSupervisionFrame(State* state, int fd, u_int8_t addr, u_int8_t ctrl, 
 
     case ADDR_RCV:
       if (rej != NULL)
-        if (byte == *rej) 
+        if (byte == *rej) {
+          printf("Rejected\n");
           isRejected = 1;
+        }
 
       if (byte == FLAG_BYTE) {
         *state = FLAG_RCV;
@@ -83,6 +87,9 @@ int receiveSupervisionFrame(State* state, int fd, u_int8_t addr, u_int8_t ctrl, 
       break;
   }
  
-  if (*state == STOP && isRejected) return 1;
+  if (*state == STOP && isRejected) {
+    *state = START;
+    return 1;
+  }
   return 0;
 }
