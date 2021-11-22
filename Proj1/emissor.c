@@ -119,13 +119,15 @@ int sendSet(int fd) {
   while (state != STOP) {
     if (conta == 3) {
       fprintf(stderr, "Communication failed\n");
-      return -1;
+      sleep(1);
+      continue;
     }
 
     if (messageFlag) {
       if (write(fd, ans, 5) < 0) {
         fprintf(stderr, "Error writing. Serial cable is probably disconnected\n");
-        return -1;
+        sleep(1);
+        continue;
       }
       messageFlag = 0;
       state = START;
@@ -133,7 +135,8 @@ int sendSet(int fd) {
     }
 
     if (receiveSupervisionFrame(&state, fd, RECEPTOR_ANSWER_ABYTE, UA_CONTROL_BYTE, NULL, mem) < 0) {
-      return -1;
+      sleep(1);
+      continue;
     }
   }
 
@@ -174,7 +177,8 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
 
       if (res1 < 0 || res2 < 0 || res3 < 0) {
         fprintf(stderr, "Error writing. Serial cable is probably disconnected\n");
-        return -1;
+        sleep(1);
+        continue;
       }
 
       messageFlag = 0;
@@ -188,7 +192,8 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
 
     if (ret < 0) {
       fprintf(stderr, "Error receiving UA\n");
-      return -1;
+      sleep(1);
+      continue;
     }
     else if (ret > 0) {
       messageFlag = 1; // Resend the frame
@@ -216,7 +221,8 @@ int discEmissor(int fd) {
     if (messageFlag) {
       if (write(fd, ans, 5) < 0) {
         fprintf(stderr, "Error writing. Serial cable is probably disconnected\n");
-        return -1;
+        sleep(1);
+        continue;
       }
 
       messageFlag = 0;
@@ -226,11 +232,14 @@ int discEmissor(int fd) {
 
     int ret = receiveSupervisionFrame(&state, fd, RECEPTOR_ANSWER_ABYTE, DISC_CONTROL_BYTE, NULL, mem);
     
-    if (ret < 0) return -1;
+    if (ret < 0) {
+      sleep(1);
+      continue;
+    }
   }
   
   alarm(0);
 
-  if (sendSupervisionFrame(fd, EMISSOR_ANSWER_ABYTE, UA_CONTROL_BYTE) < 0) return -1;
+  while (sendSupervisionFrame(fd, EMISSOR_ANSWER_ABYTE, UA_CONTROL_BYTE) < 0) sleep(1);
   return 0;
 }
