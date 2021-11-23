@@ -186,7 +186,7 @@ int main(int argc, char** argv) {
 
   if (status == EMISSOR) {
     if (sendFile(fd, filePath) < 0) {
-      fprintf(stderr, "Error sending file\n!n");
+      fprintf(stderr, "Error sending file\n");
       exit(1);
     }
   } else {
