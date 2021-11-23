@@ -103,7 +103,7 @@ int destuffData(u_int8_t* stuffed_data, int size, u_int8_t* buffer, u_int8_t* bc
       u_int8_t nextByte = stuffed_data[++i];
       if (nextByte == STUFFED_FLAG_BYTE) destuffed_buffer[bufferIdx++] = FLAG_BYTE;
       else if (nextByte == STUFFED_ESC_BYTE) destuffed_buffer[bufferIdx++] = ESC_BYTE;
-      else fprintf(stderr, "There should be no isolated ESC byte \n");
+      else fprintf(stderr, "There should be no isolated stuffed ESC byte\n");
     } else destuffed_buffer[bufferIdx++] = currByte;
   }
   bufferIdx--;
