@@ -5,6 +5,7 @@
 #include <signal.h>
 
 #define ALARM_INTERVAL 3 // Time interval between alarm triggers
+#define MAX_ATTEMPTS 5
 
 /**
  * @brief Opens the emissor for sending data.

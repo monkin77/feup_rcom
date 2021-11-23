@@ -16,6 +16,7 @@ void resetAlarmVariables() {
 void atende() {
    messageFlag = 1;
    conta++;
+   fprintf(stderr, "Timeout\n");
 }
 
 int openEmissor(char fileName[]) {
@@ -117,8 +118,8 @@ int sendSet(int fd) {
   u_int8_t mem[3], ans[5] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, SET_CONTROL_BYTE, BCC_SET, FLAG_BYTE}; 
 
   while (state != STOP) {
-    if (conta == 3) {
-      fprintf(stderr, "Communication failed\n");
+    if (conta == MAX_ATTEMPTS) {
+      fprintf(stderr, "Communication failed. Reached maximum attempts while sending SET\n");
       return -1;
     }
 
@@ -162,8 +163,8 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
 
   State state = START;
   while (state != STOP) {
-    if (conta == 3) {
-      fprintf(stderr, "Communication failed\n");
+    if (conta == MAX_ATTEMPTS) {
+      fprintf(stderr, "Communication failed. Reached maximum attempts while sending data frame\n");
       return -1;
     }
 
@@ -193,6 +194,7 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
     else if (ret > 0) {
       messageFlag = 1; // Resend the frame
       conta++;
+      printf("Rejected\n");
     }
   }
   s = 1 - s;
@@ -208,8 +210,8 @@ int discEmissor(int fd) {
   u_int8_t mem[3], ans[5] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, DISC_CONTROL_BYTE, BCC_DISC, FLAG_BYTE};
   
   while (state != STOP) {
-    if (conta == 3) {
-      fprintf(stderr, "Communication failed \n");
+    if (conta == MAX_ATTEMPTS) {
+      fprintf(stderr, "Communication failed. Reached maximum attempts while sending DISC\n");
       return -1;
     }
 

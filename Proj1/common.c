@@ -51,7 +51,6 @@ int receiveSupervisionFrame(State* state, int fd, u_int8_t addr, u_int8_t ctrl, 
     case ADDR_RCV:
       if (rej != NULL)
         if (byte == *rej) {
-          printf("Rejected\n");
           isRejected = 1;
         }
 
