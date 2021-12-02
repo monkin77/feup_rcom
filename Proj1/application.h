@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <libgen.h>
+#include <time.h>
 
 #include "interface.h"
 
@@ -26,6 +27,7 @@
 
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 
+#define BILLION  1000000000.0
 
 /**
 * @brief Builds data packet, from a given data buffer

@@ -186,6 +186,9 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
+  struct timespec start, end;
+  clock_gettime(CLOCK_REALTIME, &start);
+
   if (status == EMISSOR) {
     if (sendFile(fd, filePath) < 0) {
       fprintf(stderr, "Error sending file\n!n");
@@ -197,6 +200,12 @@ int main(int argc, char** argv) {
       exit(1);
     }
   }
+
+  clock_gettime(CLOCK_REALTIME, &end);
+  double timeSpent = (end.tv_sec - start.tv_sec) +
+                      (end.tv_nsec - start.tv_nsec) / BILLION;
+
+  printf("Elapsed time to read file: %fs\n", timeSpent);
 
   if (llclose(fd) < 0) {
     fprintf(stderr, "Error on llclose\n");

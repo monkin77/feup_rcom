@@ -172,8 +172,8 @@ int sendDataFrame(int fd, u_int8_t* data, int dataSize) {
     
     int stuffedDataSize = stuffData(data, dataSize, BCC2, stuffedData);
     u_int8_t frameHead[4] = {FLAG_BYTE, EMISSOR_CMD_ABYTE, controlByte, BCC1};
-    insertError(stuffedData, 0, 5);
-    insertError(frameHead, 2, 5);
+    // insertError(stuffedData, 0, 2);
+    // insertError(frameHead, 3, 2);
 
     if (conta == 3) {
       fprintf(stderr, "Communication failed\n");

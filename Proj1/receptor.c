@@ -1,6 +1,7 @@
 #include "receptor.h"
 
 int r = 1;
+int T_propDelay = 0; // delay upon receiving each data frame
 struct termios oldtioreceptor;
 
 int openReceptor(char filename[]) {
@@ -115,6 +116,8 @@ int destuffData(u_int8_t* stuffed_data, int size, u_int8_t* buffer, u_int8_t* bc
 }
 
 int receiveDataFrame(int fd, u_int8_t* data) {
+  if (T_propDelay > 0) sleep(T_propDelay);
+
   State state = START;
   u_int8_t receivedAddress, receivedControl, calculatedBCC,
           ctrl = INFO_CONTROL_BYTE(1-r), repeatedCtrl = INFO_CONTROL_BYTE(r), calculatedBCC2, bcc2;
