@@ -31,11 +31,18 @@ int main(int argc, char **argv) {
 
     int sockfd = connectSocket(address);
 
+    char response[3];
+
+    getResponse(sockFd, response);
+
+    printf("Response : %s\n", response);
+
     printf("Closing connection...\n");
     if (close(sockfd) < 0) {
         fprintf(stderr, "Failed to close socket");
         exit(-1);
     }
+
     printf("Connection closed\n");
 
     return 0;

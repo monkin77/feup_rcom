@@ -42,3 +42,63 @@ int connectSocket(char *addr) {
     return sockfd;
 }
 
+
+int getResponse(int socketFd, char* response) {
+    char c;
+    ResponseState state = GET_STATUS_CODE;
+
+    while(1) {
+        switch(state) {
+
+            case GET_STATUS_CODE:
+                read(socketFd, response, 3);
+                state = IS_MULTI_LINE;
+                break;
+
+            case IS_MULTI_LINE:
+                read(socketFd, &c, 1);
+
+                if (c == MULTI_LINE_SYMBOL) {
+                    state = READ_MULTI_LINE;
+                } 
+                else {
+                    state = READ_LINE;
+                }
+
+                break; 
+
+            case READ_MULTI_LINE:
+
+                int idxCounter = 0;
+                char str[4];
+                str[3] = '\0';
+
+                while( read(socketFd, &c, 1) ) {
+                    if (c == '\n') break;
+                    
+                    if (idxCounter <= 2) 
+                        str[idxCounter] = c;
+
+                    if (idxCounter == 3 && strcmp(str, response) == 0 && c == LAST_LINE_SYMBOL) {
+                        state == READ_LINE;
+                        break;
+                    }   
+
+                    idxCounter++;
+                }
+
+                break;
+
+            case READ_LINE:
+                while( read(socketFd, &c, 1) ) {
+                    if (c == '\n') 
+                        break; 
+                }  
+
+                break;
+        }
+    }
+
+    return 0;
+}
+
