@@ -51,14 +51,22 @@ int getResponse(int socketFd, char* response) {
         switch(state) {
 
             case GET_STATUS_CODE: {
-                read(socketFd, response, 3);
-                printf("%s\n", response);
+                if (read(socketFd, response, 3) < 0) {
+                    fprintf(stderr, "Error reading status code\n");
+                    return -1;
+                }
+
+                printf("%s", response);
                 state = IS_MULTI_LINE;
                 break;
             }
 
             case IS_MULTI_LINE: {
-                read(socketFd, &c, 1);
+                if (read(socketFd, &c, 1) < 0) {
+                    fprintf(stderr, "Error reading response\n");
+                    return -1;
+                }
+
                 printf("%c", c);
 
                 if (c == MULTI_LINE_SYMBOL) {
@@ -77,7 +85,12 @@ int getResponse(int socketFd, char* response) {
                 char str[4];
                 str[3] = '\0';
 
-                while( read(socketFd, &c, 1) ) {
+                while(1) {
+                    if (read(socketFd, &c, 1) < 0) {
+                        fprintf(stderr, "Error reading response\n");
+                        return -1;
+                    }
+
                     printf("%c", c);
                     if (c == '\n') break;
                     
@@ -95,7 +108,12 @@ int getResponse(int socketFd, char* response) {
                 break;
             }
             case READ_LINE: {
-                while( read(socketFd, &c, 1) ) {
+                while(1) {
+                    if (read(socketFd, &c, 1) < 0) {
+                        fprintf(stderr, "Error reading response\n");
+                        return -1;
+                    }
+
                     printf("%c", c);
                     if (c == '\n') 
                         break; 

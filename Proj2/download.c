@@ -7,6 +7,9 @@ int main(int argc, char **argv) {
         exit(-1);
     }
 
+    char response[4];
+    response[3] = '\0';
+
     int parseCredentials = hasCredentials(argv[1]);
 
     char user[MAX_USER_SIZE]; // TODO: dynamic memory
@@ -29,16 +32,8 @@ int main(int argc, char **argv) {
 
     int sockfd = connectSocket(address);
 
-    char response[4];
-    response[3] = '\0';
-
-    printf("Sending username...\n");
-    sendCommand(sockfd, "user", "anonymous");
-
-    printf("Getting response...\n");
+    printf("Getting connection response:\n");
     getResponse(sockfd, response);
-
-    printf("Response : %s\n", response);
 
     printf("Closing connection...\n");
     if (close(sockfd) < 0) {
