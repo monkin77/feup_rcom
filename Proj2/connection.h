@@ -9,10 +9,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #define SERVER_PORT 21
-#define MULTI_LINE_SYMBOl '-'
-#define LAST_LINE_SYMBOl ' '
+#define MULTI_LINE_SYMBOL '-'
+#define LAST_LINE_SYMBOL ' '
 
 
 typedef enum ResponseState {
@@ -27,5 +28,7 @@ struct hostent* getip(char hostname[]);
 int connectSocket(char *addr);
 
 int getResponse(int socketFd, char* response);
+
+int sendCommand(int sockfd, char* cmd, char* argument);
 
 #endif

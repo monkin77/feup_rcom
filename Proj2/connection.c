@@ -50,13 +50,16 @@ int getResponse(int socketFd, char* response) {
     while(1) {
         switch(state) {
 
-            case GET_STATUS_CODE:
+            case GET_STATUS_CODE: {
                 read(socketFd, response, 3);
+                printf("%s\n", response);
                 state = IS_MULTI_LINE;
                 break;
+            }
 
-            case IS_MULTI_LINE:
+            case IS_MULTI_LINE: {
                 read(socketFd, &c, 1);
+                printf("%c", c);
 
                 if (c == MULTI_LINE_SYMBOL) {
                     state = READ_MULTI_LINE;
@@ -65,22 +68,24 @@ int getResponse(int socketFd, char* response) {
                     state = READ_LINE;
                 }
 
-                break; 
+                break;
+            }
 
-            case READ_MULTI_LINE:
+            case READ_MULTI_LINE: {
 
                 int idxCounter = 0;
                 char str[4];
                 str[3] = '\0';
 
                 while( read(socketFd, &c, 1) ) {
+                    printf("%c", c);
                     if (c == '\n') break;
                     
                     if (idxCounter <= 2) 
                         str[idxCounter] = c;
 
                     if (idxCounter == 3 && strcmp(str, response) == 0 && c == LAST_LINE_SYMBOL) {
-                        state == READ_LINE;
+                        state = READ_LINE;
                         break;
                     }   
 
@@ -88,17 +93,42 @@ int getResponse(int socketFd, char* response) {
                 }
 
                 break;
-
-            case READ_LINE:
+            }
+            case READ_LINE: {
                 while( read(socketFd, &c, 1) ) {
+                    printf("%c", c);
                     if (c == '\n') 
                         break; 
-                }  
+                }
 
+                return 0;
+            }
+
+            default:
                 break;
         }
+    }
+}
+
+int sendCommand(int sockfd, char* cmd, char* argument) {
+    size_t cmd_len = strlen(cmd);
+    size_t arg_len = strlen(argument);
+
+    if (write(sockfd, cmd, cmd_len) != cmd_len) {
+        fprintf(stderr, "Error while sending command\n");
+        return -1;
+    }
+
+    char c = ' ';
+    if (write(sockfd, &c, 1) != 1) {
+        fprintf(stderr, "Error while sending command\n");
+        return -1;
+    }
+
+    if (write(sockfd, argument, arg_len) != arg_len) {
+        fprintf(stderr, "Error while sending command argument\n");
+        return -1;
     }
 
     return 0;
 }
-

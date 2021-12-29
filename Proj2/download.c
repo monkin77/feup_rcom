@@ -1,8 +1,6 @@
 #include "connection.h"
 #include "parse.h"
 
-#include <unistd.h>
-
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "Usage: %s ftp://[<user>:<password>@]<host>/<url-path>\n", argv[0]);
@@ -31,9 +29,14 @@ int main(int argc, char **argv) {
 
     int sockfd = connectSocket(address);
 
-    char response[3];
+    char response[4];
+    response[3] = '\0';
 
-    getResponse(sockFd, response);
+    printf("Sending username...\n");
+    sendCommand(sockfd, "user", "anonymous");
+
+    printf("Getting response...\n");
+    getResponse(sockfd, response);
 
     printf("Response : %s\n", response);
 
