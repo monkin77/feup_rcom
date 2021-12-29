@@ -130,23 +130,53 @@ int getResponse(int socketFd, char* response) {
 
 int sendCommand(int sockfd, char* cmd, char* argument) {
     size_t cmd_len = strlen(cmd);
-    size_t arg_len = strlen(argument);
 
     if (write(sockfd, cmd, cmd_len) != cmd_len) {
         fprintf(stderr, "Error while sending command\n");
         return -1;
     }
 
-    char c = ' ';
+    if (argument != NULL) {
+        size_t arg_len = strlen(argument);
+        char c = ' ';
+
+        if (write(sockfd, &c, 1) != 1) {
+            fprintf(stderr, "Error while sending command\n");
+            return -1;
+        }
+
+        if (write(sockfd, argument, arg_len) != arg_len) {
+            fprintf(stderr, "Error while sending command argument\n");
+            return -1;
+        }
+    }
+
+    char c = '\n';
     if (write(sockfd, &c, 1) != 1) {
         fprintf(stderr, "Error while sending command\n");
         return -1;
     }
 
-    if (write(sockfd, argument, arg_len) != arg_len) {
-        fprintf(stderr, "Error while sending command argument\n");
+    return 0;
+}
+
+int login(int sockfd, char* user, char* pass) {
+    printf("Sending username...\n");
+    if (sendCommand(sockfd, "user", user) < 0) {
+        fprintf(stderr, "Error while sending username\n");
         return -1;
     }
+
+    printf("Sending password...\n");
+    if (sendCommand(sockfd, "pass", pass) < 0) {
+        fprintf(stderr, "Error while sending password\n");
+        return -1;
+    }
+
+    printf("Getting server response:\n");
+    char response[4];
+    response[3] = '\0';
+    getResponse(sockfd, response);
 
     return 0;
 }

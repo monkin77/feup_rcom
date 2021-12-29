@@ -1,6 +1,7 @@
 #include "connection.h"
 #include "parse.h"
 
+// Test with ./download ftp://anonymous:ola@ftp.gnu.org/
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "Usage: %s ftp://[<user>:<password>@]<host>/<url-path>\n", argv[0]);
@@ -34,6 +35,14 @@ int main(int argc, char **argv) {
 
     printf("Getting connection response:\n");
     getResponse(sockfd, response);
+
+    if (login(sockfd, user, pass) < 0) exit(-1);
+
+    printf("Sending pasv...\n");
+    if (sendCommand(sockfd, "pasv", NULL) < 0) {
+        fprintf(stderr, "Error while sending username\n");
+        return -1;
+    }
 
     printf("Closing connection...\n");
     if (close(sockfd) < 0) {

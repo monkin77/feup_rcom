@@ -31,4 +31,6 @@ int getResponse(int socketFd, char* response);
 
 int sendCommand(int sockfd, char* cmd, char* argument);
 
+int login(int sockfd, char* user, char* pass);
+
 #endif
