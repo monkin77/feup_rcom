@@ -1,9 +1,13 @@
 #include "parse.h"
 
-int parseInput(char* input, char* user, char* pass, char* host, char* path, int parseCredentials) {
+
+int parseInput(char* input, char* user, char* pass, char* host, char* path) {
     int i = 0, j = 0;
     char protocol[PROTOCOL_SIZE + 1];
     InputState state = PROTOCOL;
+
+    int parseCredentials = hasCredentials(input);
+    int hostIdx = getStartHostIdx(input);
 
     while (1) {
         char c = input[i++];
@@ -46,7 +50,8 @@ int parseInput(char* input, char* user, char* pass, char* host, char* path, int 
 
             break;
         case PASS:
-            if (c == '@') {
+
+            if (i == hostIdx + 1) {
                 state = HOST;
                 j = 0;
                 break;
@@ -93,6 +98,7 @@ int parseInput(char* input, char* user, char* pass, char* host, char* path, int 
     return 0;
 }
 
+
 int hasCredentials(char* input) {
     int foundColon;
 
@@ -106,6 +112,7 @@ int hasCredentials(char* input) {
     return 0;
 }
 
+<<<<<<< HEAD
 char* strrev(char* str) {
     if (!str || ! *str) return str;
 
@@ -145,4 +152,18 @@ int parsePort(char* response, int* port) {
 
     *port = (p1 * 256) + p2;
     return 0;
+=======
+int getStartHostIdx(char *input) {
+    size_t len = strlen(input);
+
+    int hostIdx = -1;
+    
+    for(int i = 0; i < len; i++) {
+        if (input[i] == '@') {
+            hostIdx = i;
+        }
+    }
+
+    return hostIdx;
+>>>>>>> Fixed password with 2 @
 }
