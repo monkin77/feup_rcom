@@ -12,7 +12,7 @@ struct hostent* getip(char hostname[]) {
     return h;
 }
 
-int connectSocket(char *addr) {
+int connectSocket(char *addr, int port) {
     printf("Connecting to Server Socket...\n");
 
     int sockfd;
@@ -22,8 +22,8 @@ int connectSocket(char *addr) {
     bzero((char *) &server_addr, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = inet_addr(addr);    /* 32 bit Internet address network byte ordered */
-    server_addr.sin_port = htons(SERVER_PORT);        /* server TCP port must be network byte ordered */
-    
+    server_addr.sin_port = htons(port);        /* server TCP port must be network byte ordered */
+
 
     /* open a TCP socket */
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -43,20 +43,21 @@ int connectSocket(char *addr) {
 }
 
 
-int getResponse(int socketFd, char* response) {
+int getResponse(int socketFd, char* code, char* text) {
     char c;
+    int i = 0;
     ResponseState state = GET_STATUS_CODE;
 
     while(1) {
         switch(state) {
 
             case GET_STATUS_CODE: {
-                if (read(socketFd, response, 3) < 0) {
+                if (read(socketFd, code, 3) < 0) {
                     fprintf(stderr, "Error reading status code\n");
                     return -1;
                 }
 
-                printf("%s", response);
+                printf("%s", code);
                 state = IS_MULTI_LINE;
                 break;
             }
@@ -97,10 +98,13 @@ int getResponse(int socketFd, char* response) {
                     if (idxCounter <= 2) 
                         str[idxCounter] = c;
 
-                    if (idxCounter == 3 && strcmp(str, response) == 0 && c == LAST_LINE_SYMBOL) {
+                    if (idxCounter == 3 && strcmp(str, code) == 0 && c == LAST_LINE_SYMBOL) {
                         state = READ_LINE;
                         break;
-                    }   
+                    }
+
+                    if (idxCounter > 3 && text != NULL  && c != CARRIAGE_RETURN)
+                        text[i++] = c;
 
                     idxCounter++;
                 }
@@ -115,10 +119,12 @@ int getResponse(int socketFd, char* response) {
                     }
 
                     printf("%c", c);
-                    if (c == '\n') 
-                        break; 
+                    if (c == '\n') break;
+
+                    if (text != NULL && c != CARRIAGE_RETURN) text[i++] = c;
                 }
 
+                if (text != NULL) text[i++] = '\0';
                 return 0;
             }
 
@@ -176,7 +182,32 @@ int login(int sockfd, char* user, char* pass) {
     printf("Getting server response:\n");
     char response[4];
     response[3] = '\0';
-    getResponse(sockfd, response);
+    getResponse(sockfd, response, NULL);
+
+    return 0;
+}
+
+int getPort(int sockfd, int* port) {
+    char responseCode[4];
+    memset(responseCode, 0, 4);
+
+    char response[PSV_RESPONSE_MAXSIZE];
+
+    printf("Sending pasv...\n");
+    if (sendCommand(sockfd, "pasv", NULL) < 0) {
+        fprintf(stderr, "Error while sending username\n");
+        return -1;
+    }
+
+    printf("Getting response from pasv\n");
+    getResponse(sockfd, responseCode, NULL);
+    getResponse(sockfd, responseCode, response);
+
+
+    if (parsePort(response, port) < 0) {
+        fprintf(stderr, "Error parsing port\n");
+        return -1;
+    }
 
     return 0;
 }

@@ -1,5 +1,4 @@
 #include "connection.h"
-#include "parse.h"
 
 // Test with ./download ftp://anonymous:ola@ftp.gnu.org/
 int main(int argc, char **argv) {
@@ -8,8 +7,8 @@ int main(int argc, char **argv) {
         exit(-1);
     }
 
-    char response[4];
-    response[3] = '\0';
+    char responseCode[4];
+    memset(responseCode, 0, 4);
 
     int parseCredentials = hasCredentials(argv[1]);
 
@@ -31,16 +30,17 @@ int main(int argc, char **argv) {
     printf("Host name  : %s\n", h->h_name);
     printf("IP Address : %s\n", address);
 
-    int sockfd = connectSocket(address);
+    int sockfd = connectSocket(address, SERVER_PORT);
 
     printf("Getting connection response:\n");
-    getResponse(sockfd, response);
+    getResponse(sockfd, responseCode, NULL);
 
     if (login(sockfd, user, pass) < 0) exit(-1);
 
-    printf("Sending pasv...\n");
-    if (sendCommand(sockfd, "pasv", NULL) < 0) {
-        fprintf(stderr, "Error while sending username\n");
+    printf("Getting port from server...\n");
+    int port;
+    if (getPort(sockfd, &port) < 0) {
+        fprintf(stderr, "Error while getting port from server\n");
         return -1;
     }
 

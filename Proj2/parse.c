@@ -1,7 +1,7 @@
 #include "parse.h"
 
 int parseInput(char* input, char* user, char* pass, char* host, char* path, int parseCredentials) {
-    int i, j = 0;
+    int i = 0, j = 0;
     char protocol[PROTOCOL_SIZE + 1];
     InputState state = PROTOCOL;
 
@@ -103,5 +103,46 @@ int hasCredentials(char* input) {
             return 1;
     }
 
+    return 0;
+}
+
+char* strrev(char* str) {
+    if (!str || ! *str) return str;
+
+    int i = strlen(str) - 1, j = 0;
+
+    while (i > j) {
+        char c = str[i];
+        str[i--] = str[j];
+        str[j++] = c;
+    }
+
+    return str;
+}
+
+int parsePort(char* response, int* port) {
+    size_t i = strlen(response) - 1, currIdx = 0;
+    char first[4], second[4];
+    memset(first, 0, 4);
+    memset(second, 0, 4);
+
+    if (response[i--] != ')') {
+        if (response[i + 1] != '.' || response[i--] != ')') {
+            fprintf(stderr, "Wrong response format: %s\n", response);
+            return -1;
+        }
+    }
+
+    while (response[i] != ',')
+        second[currIdx++] = response[i--];
+    i--;
+    currIdx = 0;
+    while (response[i] != ',')
+        first[currIdx++] = response[i--];
+
+    int p1 = atoi(strrev(first));
+    int p2 = atoi(strrev(second));
+
+    *port = (p1 * 256) + p2;
     return 0;
 }

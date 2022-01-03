@@ -23,4 +23,6 @@ int parseInput(char* input, char* user, char* pass, char* host, char* path, int 
 
 int hasCredentials(char* input);
 
+int parsePort(char* response, int* port);
+
 #endif
