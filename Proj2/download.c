@@ -44,6 +44,8 @@ int main(int argc, char **argv) {
         return -1;
     }
 
+    printf("NEW PORT: %d\n", port);
+
     printf("Closing connection...\n");
     if (close(sockfd) < 0) {
         fprintf(stderr, "Failed to close socket");
