@@ -19,10 +19,9 @@ typedef enum InputState {
   PATH
 } InputState;
 
-int parseInput(char* input, char* user, char* pass, char* host, char* path, int parseCredentials);
-
-int hasCredentials(char* input);
+int parseInput(char* input, char* user, char* pass, char* host, char* path);
 
 int parsePort(char* response, int* port);
+int getStartHostIdx(char *input);
 
 #endif

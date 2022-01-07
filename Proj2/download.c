@@ -10,8 +10,6 @@ int main(int argc, char **argv) {
     char responseCode[4];
     memset(responseCode, 0, 4);
 
-    int parseCredentials = hasCredentials(argv[1]);
-
     char user[MAX_USER_SIZE]; // TODO: dynamic memory
     memset(user, 0, MAX_USER_SIZE);
     char pass[MAX_PASS_SIZE];
@@ -21,8 +19,10 @@ int main(int argc, char **argv) {
     char path[MAX_PATH_SIZE];
     memset(path, 0, MAX_PATH_SIZE);
 
-    if (parseInput(argv[1], user, pass, host, path, parseCredentials))
+    if (parseInput(argv[1], user, pass, host, path))
         exit(-1);
+
+    printf("User: %s\nPass: %s\nHost: %s\nPath: %s\n", user, pass, host, path);
 
     struct hostent *h = getip(host);
     char *address = inet_ntoa(*((struct in_addr *) h->h_addr));
