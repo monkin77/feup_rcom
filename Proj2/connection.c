@@ -215,16 +215,18 @@ int getPort(int sockfd, int* port) {
 int downloadFile(int sockfd, int downloadFd, char* path) {
     char responseCode[4];
     memset(responseCode, 0, 4);
+    char fileName[MAX_PATH_SIZE];
 
     if (sendCommand(sockfd, "retr", path) < 0) return -1;
     if (getResponse(sockfd, responseCode, NULL) < 0) return -1;
 
-    if (saveFile(downloadFd, "timestamp.txt") < 0) return -1;
+    parseFileName(path, fileName);
+    if (saveFile(downloadFd, fileName) < 0) return -1;
     return 0;
 }
 
-int saveFile(int downloadFd, char* filename) {
-    FILE *file = fopen(filename, "wb");
+int saveFile(int downloadFd, char* fileName) {
+    FILE *file = fopen(fileName, "wb");
 
     uint8_t buf[FILE_BUFFER_SIZE];
     int bytes;

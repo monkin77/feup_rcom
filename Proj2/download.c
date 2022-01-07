@@ -1,6 +1,6 @@
 #include "connection.h"
 
-// Test with ./download ftp://anonymous:ola@ftp.gnu.org/
+// Test with ./download ftp://anonymous:ola@ftp.gnu.org/video/fry720.jpg
 int main(int argc, char **argv)
 {
     if (argc != 2)
@@ -14,8 +14,8 @@ int main(int argc, char **argv)
 
     char user[MAX_USER_SIZE]; // TODO: dynamic memory
     memset(user, 0, MAX_USER_SIZE);
-    char pass[MAX_PASS_SIZE];
-    memset(pass, 0, MAX_PASS_SIZE);
+    char pass[MAX_PWD_SIZE];
+    memset(pass, 0, MAX_PWD_SIZE);
     char host[MAX_HOST_SIZE];
     memset(host, 0, MAX_HOST_SIZE);
     char path[MAX_PATH_SIZE];

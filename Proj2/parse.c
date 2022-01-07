@@ -67,9 +67,9 @@ int parseInput(char *input, char *user, char *pass, char *host, char *path)
 
             pass[j++] = c;
 
-            if (j > MAX_PASS_SIZE)
+            if (j > MAX_PWD_SIZE)
             {
-                fprintf(stderr, "Password is too large! Max: %d\n", MAX_PASS_SIZE);
+                fprintf(stderr, "Password is too large! Max: %d\n", MAX_PWD_SIZE);
                 return -1;
             }
 
@@ -175,7 +175,7 @@ int getStartHostIdx(char *input)
     return hostIdx;
 }
 
-int parseFileName(char *path, char *fileName)
+void parseFileName(char *path, char *fileName)
 {
     size_t pathSize = strlen(path);
 
