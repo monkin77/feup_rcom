@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 
     if (login(sockfd, user, pass) < 0)
         exit(-1);
-
+    
     printf("Getting port from server...\n");
     int port;
     if (getPort(sockfd, &port) < 0)

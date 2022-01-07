@@ -167,22 +167,23 @@ int sendCommand(int sockfd, char* cmd, char* argument) {
 }
 
 int login(int sockfd, char* user, char* pass) {
+
     printf("Sending username...\n");
-    if (sendCommand(sockfd, "user", user) < 0) {
+    int res = handleCommand(sockfd, "user", user, NULL);
+
+    if (res < 0) {
         fprintf(stderr, "Error while sending username\n");
         return -1;
     }
+    
+    if (res == 1) {
+        printf("Sending password...\n");
 
-    printf("Sending password...\n");
-    if (sendCommand(sockfd, "pass", pass) < 0) {
-        fprintf(stderr, "Error while sending password\n");
-        return -1;
+        if (handleCommand(sockfd, "pass", pass, NULL) < 0) {
+            fprintf(stderr, "Error while sending pasv\n");
+            return -1;
+        };
     }
-
-    printf("Getting server response:\n");
-    char response[4];
-    response[3] = '\0';
-    getResponse(sockfd, response, NULL);
 
     return 0;
 }
@@ -194,15 +195,11 @@ int getPort(int sockfd, int* port) {
     char response[PSV_RESPONSE_MAXSIZE];
 
     printf("Sending pasv...\n");
-    if (sendCommand(sockfd, "pasv", NULL) < 0) {
-        fprintf(stderr, "Error while sending username\n");
+
+    if (handleCommand(sockfd, "pasv", NULL, response) < 0) {
+        fprintf(stderr, "Error while sending pasv\n");
         return -1;
     }
-
-    printf("Getting response from pasv\n");
-    getResponse(sockfd, responseCode, NULL);
-    getResponse(sockfd, responseCode, response);
-
 
     if (parsePort(response, port) < 0) {
         fprintf(stderr, "Error parsing port\n");
@@ -217,8 +214,11 @@ int downloadFile(int sockfd, int downloadFd, char* path) {
     memset(responseCode, 0, 4);
     char fileName[MAX_PATH_SIZE];
 
-    if (sendCommand(sockfd, "retr", path) < 0) return -1;
-    if (getResponse(sockfd, responseCode, NULL) < 0) return -1;
+    
+    if (handleCommand(sockfd, "retr", path, NULL) < 0) {
+        fprintf(stderr, "Error while sending retr\n");
+        return -1;
+    }
 
     parseFileName(path, fileName);
     if (saveFile(downloadFd, fileName) < 0) return -1;
@@ -239,5 +239,50 @@ int saveFile(int downloadFd, char* fileName) {
     }
 
     fclose(file);
+    return 0;
+}
+
+
+int handleCommand(int sockfd, char* cmd, char* argument, char* text) {
+
+    char responseCode[4];
+    memset(responseCode, 0, 4); 
+
+    if (sendCommand(sockfd, cmd, argument)) {
+        fprintf(stderr, "Error while sending username\n");
+        return -1;
+    }
+
+    int code;
+    do {
+        if (getResponse(sockfd, responseCode, text) < 0) return -1;
+        code = responseCode[0]- '0';
+
+        switch(code) {
+            // expecting another response   
+            case 1: {            
+                break;
+            }
+
+            // positive completion reply
+            case 2:
+                break;
+            
+            // waiting for more information
+            case 3:
+                return 1;
+
+            // resend the command
+            case 4:
+                if (handleCommand(sockfd, cmd, argument, text) < 0) return -1;
+                break;
+
+            // permanent negative completion reply
+            case 5:
+                fprintf(stderr, "Command wasn't accepted\n");
+                return -1;                
+        }
+    } while (code == 1);
+
     return 0;
 }

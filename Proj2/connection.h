@@ -45,4 +45,9 @@ int downloadFile(int sockfd, int downloadFd, char* path);
 
 int saveFile(int downloadFd, char* filename);
 
+/**
+* sends a command and interprets its reply
+*/
+int handleCommand(int sockfd, char* cmd, char* argument, char* text);
+
 #endif
