@@ -11,7 +11,8 @@
 #define MAX_HOST_SIZE 256
 #define MAX_PATH_SIZE 512
 
-typedef enum InputState {
+typedef enum InputState
+{
   PROTOCOL,
   USER,
   PASS,
@@ -19,9 +20,13 @@ typedef enum InputState {
   PATH
 } InputState;
 
-int parseInput(char* input, char* user, char* pass, char* host, char* path);
+int parseInput(char *input, char *user, char *pass, char *host, char *path);
 
-int parsePort(char* response, int* port);
+int parsePort(char *response, int *port);
 int getStartHostIdx(char *input);
+
+char *strrev(char *str);
+
+int parseFileName(char *path, char *fileName);
 
 #endif

@@ -1,8 +1,10 @@
 #include "connection.h"
 
 // Test with ./download ftp://anonymous:ola@ftp.gnu.org/
-int main(int argc, char **argv) {
-    if (argc != 2) {
+int main(int argc, char **argv)
+{
+    if (argc != 2)
+    {
         fprintf(stderr, "Usage: %s ftp://[<user>:<password>@]<host>/<url-path>\n", argv[0]);
         exit(-1);
     }
@@ -25,13 +27,14 @@ int main(int argc, char **argv) {
     printf("User: %s\nPass: %s\nHost: %s\nPath: %s\n", user, pass, host, path);
 
     struct hostent *h = getip(host);
-    char *address = inet_ntoa(*((struct in_addr *) h->h_addr));
+    char *address = inet_ntoa(*((struct in_addr *)h->h_addr));
 
     printf("Host name  : %s\n", h->h_name);
     printf("IP Address : %s\n", address);
 
     int sockfd = connectSocket(address, SERVER_PORT);
-    if (sockfd < 0) {
+    if (sockfd < 0)
+    {
         fprintf(stderr, "Error while connecting to socket\n");
         return -1;
     }
@@ -39,11 +42,13 @@ int main(int argc, char **argv) {
     printf("Getting connection response:\n");
     getResponse(sockfd, responseCode, NULL);
 
-    if (login(sockfd, user, pass) < 0) exit(-1);
+    if (login(sockfd, user, pass) < 0)
+        exit(-1);
 
     printf("Getting port from server...\n");
     int port;
-    if (getPort(sockfd, &port) < 0) {
+    if (getPort(sockfd, &port) < 0)
+    {
         fprintf(stderr, "Error while getting port from server\n");
         return -1;
     }
@@ -51,25 +56,29 @@ int main(int argc, char **argv) {
     printf("NEW PORT: %d\n", port);
 
     int downloadFd = connectSocket(address, port);
-    if (downloadFd < 0) {
+    if (downloadFd < 0)
+    {
         fprintf(stderr, "Error while connecting to socket\n");
         return -1;
     }
 
     printf("Downloading file...\n");
 
-    if (downloadFile(sockfd, downloadFd, path) < 0) {
+    if (downloadFile(sockfd, downloadFd, path) < 0)
+    {
         fprintf(stderr, "Error while downloading file\n");
         return -1;
     }
 
     printf("Closing connection...\n");
-    if (close(sockfd) < 0) {
+    if (close(sockfd) < 0)
+    {
         fprintf(stderr, "Failed to close socket\n");
         exit(-1);
     }
 
-    if (close(downloadFd) < 0) {
+    if (close(downloadFd) < 0)
+    {
         fprintf(stderr, "Failed to close socket\n");
         exit(-1);
     }
