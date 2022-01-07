@@ -19,6 +19,7 @@
 #define CARRIAGE_RETURN 13
 
 #define PSV_RESPONSE_MAXSIZE 1000
+#define FILE_BUFFER_SIZE 256
 
 
 typedef enum ResponseState {
@@ -39,5 +40,9 @@ int sendCommand(int sockfd, char* cmd, char* argument);
 int login(int sockfd, char* user, char* pass);
 
 int getPort(int sockfd, int* port);
+
+int downloadFile(int sockfd, int downloadFd, char* path);
+
+int saveFile(int downloadFd, char* filename);
 
 #endif

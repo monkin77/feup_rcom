@@ -28,13 +28,13 @@ int connectSocket(char *addr, int port) {
     /* open a TCP socket */
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket()");
-        exit(-1);
+        return -1;
     }
 
     /* connect to the server */
     if (connect(sockfd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
         perror("connect()");
-        exit(-1);
+        return -1;
     }
 
     printf("Server Socket Connected\n");
@@ -209,5 +209,33 @@ int getPort(int sockfd, int* port) {
         return -1;
     }
 
+    return 0;
+}
+
+int downloadFile(int sockfd, int downloadFd, char* path) {
+    char responseCode[4];
+    memset(responseCode, 0, 4);
+
+    if (sendCommand(sockfd, "retr", path) < 0) return -1;
+    if (getResponse(sockfd, responseCode, NULL) < 0) return -1;
+
+    if (saveFile(downloadFd, "timestamp.txt") < 0) return -1;
+    return 0;
+}
+
+int saveFile(int downloadFd, char* filename) {
+    FILE *file = fopen(filename, "wb");
+
+    uint8_t buf[FILE_BUFFER_SIZE];
+    int bytes;
+    while ((bytes = read(downloadFd, buf, FILE_BUFFER_SIZE)) > 0) {
+        if (bytes < 0) {
+            fprintf(stderr, "Error while reading file\n");
+            return -1;
+        }
+        fwrite(buf, bytes, 1, file);
+    }
+
+    fclose(file);
     return 0;
 }

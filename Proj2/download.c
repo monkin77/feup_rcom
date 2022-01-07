@@ -31,6 +31,10 @@ int main(int argc, char **argv) {
     printf("IP Address : %s\n", address);
 
     int sockfd = connectSocket(address, SERVER_PORT);
+    if (sockfd < 0) {
+        fprintf(stderr, "Error while connecting to socket\n");
+        return -1;
+    }
 
     printf("Getting connection response:\n");
     getResponse(sockfd, responseCode, NULL);
@@ -46,9 +50,27 @@ int main(int argc, char **argv) {
 
     printf("NEW PORT: %d\n", port);
 
+    int downloadFd = connectSocket(address, port);
+    if (downloadFd < 0) {
+        fprintf(stderr, "Error while connecting to socket\n");
+        return -1;
+    }
+
+    printf("Downloading file...\n");
+
+    if (downloadFile(sockfd, downloadFd, path) < 0) {
+        fprintf(stderr, "Error while downloading file\n");
+        return -1;
+    }
+
     printf("Closing connection...\n");
     if (close(sockfd) < 0) {
-        fprintf(stderr, "Failed to close socket");
+        fprintf(stderr, "Failed to close socket\n");
+        exit(-1);
+    }
+
+    if (close(downloadFd) < 0) {
+        fprintf(stderr, "Failed to close socket\n");
         exit(-1);
     }
 
