@@ -21,33 +21,33 @@
 #define PSV_RESPONSE_MAXSIZE 1000
 #define FILE_BUFFER_SIZE 256
 
-
-typedef enum ResponseState {
+typedef enum ResponseState
+{
   GET_STATUS_CODE,
   IS_MULTI_LINE,
   READ_MULTI_LINE,
   READ_LINE
 } ResponseState;
 
-struct hostent* getip(char hostname[]);
+struct hostent *getip(char hostname[]);
 
 int connectSocket(char *addr, int port);
 
-int getResponse(int socketFd, char* code, char* text);
+int getResponse(int socketFd, char *code, char *text);
 
-int sendCommand(int sockfd, char* cmd, char* argument);
+int sendCommand(int sockfd, char *cmd, char *argument);
 
-int login(int sockfd, char* user, char* pass);
+int login(int sockfd, char *user, char *pass);
 
-int getPort(int sockfd, int* port);
+int getPort(int sockfd, int *port);
 
-int downloadFile(int sockfd, int downloadFd, char* path);
+int downloadFile(int sockfd, int downloadFd, char *path);
 
-int saveFile(int downloadFd, char* filename);
+int saveFile(int downloadFd, char *filename, size_t fileSize);
 
 /**
 * sends a command and interprets its reply
 */
-int handleCommand(int sockfd, char* cmd, char* argument, char* text);
+int handleCommand(int sockfd, char *cmd, char *argument, char *text);
 
 #endif

@@ -7,7 +7,8 @@ int parseInput(char *input, char *user, char *pass, char *host, char *path)
     InputState state = PROTOCOL;
 
     int hostIdx = getStartHostIdx(input);
-    if (hostIdx == -1) { // Anonymous user
+    if (hostIdx == -1)
+    { // Anonymous user
         strcpy(user, "anonymous");
         strcpy(pass, "anonymous");
     }
@@ -195,4 +196,26 @@ void parseFileName(char *path, char *fileName)
 
     fileName[idx] = '\0';
     strrev(fileName);
+}
+
+size_t parseFileSize(char *text)
+{
+    size_t textLen = strlen(text);
+
+    size_t fileSize = 0;
+    int i = textLen - 9;
+    int counter = 1;
+    while (text[i] != '(')
+    {
+        int digit = text[i] - '0';
+
+        if (digit < 0 || digit > 9)
+            return 0;
+
+        fileSize += digit * counter;
+        counter *= 10;
+        i--;
+    }
+
+    return fileSize;
 }
