@@ -12,7 +12,7 @@ int main(int argc, char **argv)
     char responseCode[4];
     memset(responseCode, 0, 4);
 
-    char user[MAX_USER_SIZE]; // TODO: dynamic memory
+    char user[MAX_USER_SIZE];
     memset(user, 0, MAX_USER_SIZE);
     char pass[MAX_PWD_SIZE];
     memset(pass, 0, MAX_PWD_SIZE);

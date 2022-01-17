@@ -7,6 +7,10 @@ int parseInput(char *input, char *user, char *pass, char *host, char *path)
     InputState state = PROTOCOL;
 
     int hostIdx = getStartHostIdx(input);
+    if (hostIdx == -1) { // Anonymous user
+        strcpy(user, "anonymous");
+        strcpy(pass, "anonymous");
+    }
 
     while (1)
     {

@@ -6,10 +6,10 @@
 #include <stdlib.h>
 
 #define PROTOCOL_SIZE 6
-#define MAX_USER_SIZE 100
-#define MAX_PWD_SIZE 100
-#define MAX_HOST_SIZE 256
-#define MAX_PATH_SIZE 512
+#define MAX_USER_SIZE 256
+#define MAX_PWD_SIZE 256
+#define MAX_HOST_SIZE 512
+#define MAX_PATH_SIZE 1024
 
 typedef enum InputState
 {

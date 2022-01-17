@@ -214,14 +214,24 @@ int downloadFile(int sockfd, int downloadFd, char* path) {
     memset(responseCode, 0, 4);
     char fileName[MAX_PATH_SIZE];
 
-    
-    if (handleCommand(sockfd, "retr", path, NULL) < 0) {
+    int res = handleCommand(sockfd, "retr", path, NULL);
+
+    if (res < 0) {
         fprintf(stderr, "Error while sending retr\n");
+        return -1;
+    } else if (res != 2) {
+        fprintf(stderr, "Server refused to transfer file\n");
         return -1;
     }
 
     parseFileName(path, fileName);
     if (saveFile(downloadFd, fileName) < 0) return -1;
+
+    if (getResponse(sockfd, responseCode, NULL) < 0) {
+        fprintf(stderr, "Failed to confirm file transfer\n");
+        return -1;
+    }
+
     return 0;
 }
 
@@ -254,35 +264,33 @@ int handleCommand(int sockfd, char* cmd, char* argument, char* text) {
     }
 
     int code;
-    do {
-        if (getResponse(sockfd, responseCode, text) < 0) return -1;
-        code = responseCode[0]- '0';
+    if (getResponse(sockfd, responseCode, text) < 0) return -1;
+    code = responseCode[0]- '0';
 
-        switch(code) {
-            // expecting another response   
-            case 1: {            
-                break;
-            }
-
-            // positive completion reply
-            case 2:
-                break;
-            
-            // waiting for more information
-            case 3:
-                return 1;
-
-            // resend the command
-            case 4:
-                if (handleCommand(sockfd, cmd, argument, text) < 0) return -1;
-                break;
-
-            // permanent negative completion reply
-            case 5:
-                fprintf(stderr, "Command wasn't accepted\n");
-                return -1;                
+    switch(code) {
+        // expecting another response
+        case 1: {
+            return 2;
         }
-    } while (code == 1);
+
+        // positive completion reply
+        case 2:
+            break;
+        
+        // waiting for more information
+        case 3:
+            return 1;
+
+        // resend the command
+        case 4:
+            if (handleCommand(sockfd, cmd, argument, text) < 0) return -1;
+            break;
+
+        // permanent negative completion reply
+        case 5:
+            fprintf(stderr, "Command wasn't accepted\n");
+            return -1;                
+    }
 
     return 0;
 }
