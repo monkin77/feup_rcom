@@ -4,6 +4,8 @@ int parseInput(char *input, char *user, char *pass, char *host, char *path)
 {
     int i = 0, j = 0;
     char protocol[PROTOCOL_SIZE + 1];
+    memset(protocol, 0, PROTOCOL_SIZE + 1);
+
     InputState state = PROTOCOL;
 
     int hostIdx = getStartHostIdx(input);
